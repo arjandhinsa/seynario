@@ -1,4 +1,4 @@
-const BASE_URL = import.meta.env.PROD ? "" : "";
+const BASE_URL = import.meta.env.PROD ? "https://api-seynario.seyn.co.uk" : "";
 
 async function request(endpoint, options = {}, token = null) {
   const headers = { "Content-Type": "application/json", ...options.headers };
