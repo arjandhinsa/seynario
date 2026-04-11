@@ -85,7 +85,7 @@ export default function HomeScreen() {
 
           {garments.length === 0 ? (
             <p style={{ fontSize: 13, color: "var(--text-muted)", lineHeight: 1.6 }}>
-              Start by scanning a few items from your wardrobe. Take a photo of a shirt, trousers, shoes — Seynario will identify them instantly.
+              Start by scanning a few items from your wardrobe and Seynario will identify them.
             </p>
           ) : (
             <div style={{ display: "flex", gap: 10, overflowX: "auto", paddingBottom: 4 }}>
