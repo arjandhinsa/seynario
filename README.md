@@ -1,8 +1,7 @@
 # Seynario — Dress for the Scenario
  
-A full-stack AI-powered wardrobe scanner and outfit recommendation engine. Users photograph their clothes, AI identifies each garment, then recommends complete outfits tailored to specific scenarios — job interviews, first dates, nights out, weddings, and more.
- 
-Part of the **SEYN** product family.
+A full-stack AI-powered wardrobe scanner and outfit recommendation engine. Users photograph their clothes, AI identifies each garment, then recommends complete outfits tailored to specific scenarios, such as: job interviews, first dates, nights out, weddings, and more.
+
  
 ## How It Works
  
