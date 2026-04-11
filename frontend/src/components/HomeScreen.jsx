@@ -9,17 +9,20 @@ export default function HomeScreen() {
   const [garments, setGarments] = useState([]);
   const [scenarios, setScenarios] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [savedOutfits, setSavedOutfits] = useState([]);
 
   useEffect(() => {
     const load = async () => {
       const token = getToken();
       try {
-        const [g, s] = await Promise.all([
-          api.get("/api/wardrobe/", token),
-          api.get("/api/scenarios/", token),
-        ]);
-        setGarments(g);
-        setScenarios(s);
+        const [g, s, o] = await Promise.all([
+        api.get("/api/wardrobe/", token),
+        api.get("/api/scenarios/", token),
+        api.get("/api/outfits/?saved=true", token),
+    ]);
+    setGarments(g);
+    setScenarios(s);
+    setSavedOutfits(o);
       } catch (e) {
         console.error("Failed to load:", e);
       } finally {
@@ -109,6 +112,46 @@ export default function HomeScreen() {
             </div>
           )}
         </div>
+
+        {/* Saved outfits */}
+        {savedOutfits.length > 0 && (
+        <div style={{
+            marginBottom: 24,
+            animation: "slideUp 0.5s ease-out 0.25s both",
+        }}>
+            <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: 14 }}>Saved Outfits</h2>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {savedOutfits.map((o, i) => {
+                const scenario = scenarios.find(s => s.id === o.scenario_id);
+                return (
+                <div
+                    key={o.id}
+                    onClick={() => navigate(`/outfit/${o.id}`)}
+                    style={{
+                    padding: "16px 18px", borderRadius: 14,
+                    background: "rgba(255,255,255,0.02)",
+                    border: "1px solid rgba(255,255,255,0.05)",
+                    cursor: "pointer",
+                    transition: "all 0.3s",
+                    animation: `fadeSlideIn 0.3s ease-out ${i * 0.05}s both`,
+                    }}
+                >
+                    <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                    <span style={{ fontSize: 22 }}>{scenario?.icon || "👔"}</span>
+                    <div style={{ flex: 1 }}>
+                        <h4 style={{ margin: 0, fontSize: 14.5, fontWeight: 600 }}>{o.name || "Saved outfit"}</h4>
+                        <p style={{ margin: "3px 0 0", fontSize: 12, color: "var(--text-muted)" }}>
+                        {scenario?.name || "Custom outfit"} · {o.item_count} items
+                        </p>
+                    </div>
+                    <span style={{ color: "var(--text-muted)", fontSize: 16 }}>→</span>
+                    </div>
+                </div>
+                );
+            })}
+            </div>
+        </div>
+        )}
 
         {/* Scenarios */}
         <h2 style={{

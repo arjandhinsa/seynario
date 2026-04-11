@@ -5,6 +5,7 @@ import HomeScreen from "./components/HomeScreen.jsx";
 import ScanScreen from "./components/ScanScreen.jsx";
 import WardrobeScreen from "./components/WardrobeScreen.jsx";
 import ScenarioScreen from "./components/ScenarioScreen.jsx";
+import OutfitDetail from "./components/OutfitDetail.jsx";
 
 function AppRoutes() {
   const { user } = useAuth();
@@ -20,6 +21,7 @@ function AppRoutes() {
       <Route path="/scan" element={<ScanScreen />} />
       <Route path="/wardrobe" element={<WardrobeScreen />} />
       <Route path="/scenario/:scenarioId" element={<ScenarioScreen />} />
+      <Route path="/outfit/:outfitId" element={<OutfitDetail />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
