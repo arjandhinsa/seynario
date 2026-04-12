@@ -79,5 +79,5 @@ Scanning is a one-time cost per garment. At 100 users scanning 20 items each plu
  
 ## Status
  
-Active development. Core backend and frontend complete. Next: affiliate integration for shoppable recommendations, HEIC image support, virtual try-on exploration.
+Active development. Core backend and frontend complete. Next: affiliate integration for shoppable recommendations, virtual try-on exploration.
  
