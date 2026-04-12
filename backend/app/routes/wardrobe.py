@@ -1,5 +1,9 @@
 import uuid
 
+import io
+from PIL import Image
+import pillow_heif
+
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -10,6 +14,18 @@ from app.models.wardrobe import Garment
 from app.middleware.auth import get_current_user
 from app.services.image_store import upload_image, delete_image
 from app.services.vision import identify_garment
+
+
+def convert_to_jpeg(image_bytes: bytes, content_type: str) -> bytes:
+    """Convert HEIC/HEIF to JPEG. Pass through JPG/PNG unchanged."""
+    if content_type in ("image/heic", "image/heif") or image_bytes[:4] == b'\x00\x00\x00\x18':
+        # Register HEIF support with Pillow
+        pillow_heif.register_heif_opener()
+        img = Image.open(io.BytesIO(image_bytes))
+        output = io.BytesIO()
+        img.convert("RGB").save(output, format="JPEG", quality=85)
+        return output.getvalue()
+    return image_bytes
 
 
 router = APIRouter()
@@ -47,8 +63,9 @@ async def scan_garment(
     user_id: str = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    # Read the uploaded image
-    image_bytes = await file.read()
+    # Read and convert image (handles HEIC from iPhones)
+    raw_bytes = await file.read()
+    image_bytes = convert_to_jpeg(raw_bytes, file.content_type)
 
     # Upload to Cloudinary
     filename = f"{user_id}_{uuid.uuid4().hex[:8]}"
