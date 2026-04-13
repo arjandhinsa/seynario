@@ -11,6 +11,7 @@ export default function ScenarioScreen() {
   const [outfits, setOutfits] = useState([]);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
+  const [currentOutfit, setCurrentOutfit] = useState(0);
 
   useEffect(() => {
     const load = async () => {
@@ -37,7 +38,12 @@ export default function ScenarioScreen() {
       }, token);
       setOutfits(results);
     } catch (e) {
-      console.error("Failed to generate outfits:", e);
+      if (e.message.includes("style profile")) {
+        alert("Complete your style profile first!");
+        navigate("/profile");
+      } else {
+        console.error("Failed to generate outfits:", e);
+      }
     } finally {
       setGenerating(false);
     }
@@ -124,57 +130,157 @@ export default function ScenarioScreen() {
         {/* Outfit results */}
         {outfits.length > 0 && (
           <div style={{ marginTop: 10 }}>
-            <h3 style={{
-              fontSize: 11, fontFamily: "var(--font-mono)", color: "var(--accent)",
-              letterSpacing: 2, textTransform: "uppercase", marginBottom: 14,
-            }}>Recommended outfits</h3>
+            <div style={{
+              display: "flex", justifyContent: "space-between", alignItems: "center",
+              marginBottom: 14,
+            }}>
+              <h3 style={{
+                fontSize: 11, fontFamily: "var(--font-mono)", color: "var(--accent)",
+                letterSpacing: 2, textTransform: "uppercase", margin: 0,
+              }}>Outfit {currentOutfit + 1} of {outfits.length}</h3>
+              <div style={{ display: "flex", gap: 8 }}>
+                <button onClick={() => setCurrentOutfit(Math.max(0, currentOutfit - 1))}
+                  disabled={currentOutfit === 0}
+                  style={{
+                    width: 32, height: 32, borderRadius: 8,
+                    background: "rgba(255,255,255,0.04)",
+                    border: "1px solid rgba(255,255,255,0.08)",
+                    color: currentOutfit === 0 ? "rgba(255,255,255,0.15)" : "var(--text-primary)",
+                    fontSize: 14, cursor: currentOutfit === 0 ? "default" : "pointer",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                  }}>←</button>
+                <button onClick={() => setCurrentOutfit(Math.min(outfits.length - 1, currentOutfit + 1))}
+                  disabled={currentOutfit === outfits.length - 1}
+                  style={{
+                    width: 32, height: 32, borderRadius: 8,
+                    background: "rgba(255,255,255,0.04)",
+                    border: "1px solid rgba(255,255,255,0.08)",
+                    color: currentOutfit === outfits.length - 1 ? "rgba(255,255,255,0.15)" : "var(--text-primary)",
+                    fontSize: 14, cursor: currentOutfit === outfits.length - 1 ? "default" : "pointer",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                  }}>→</button>
+              </div>
+            </div>
 
-            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-              {outfits.map((outfit, i) => (
-                <div key={outfit.id} style={{
-                  borderRadius: 18,
-                  background: "rgba(255,255,255,0.025)",
-                  border: "1px solid rgba(255,255,255,0.05)",
-                  overflow: "hidden",
-                  animation: `slideUp 0.5s ease-out ${i * 0.1}s both`,
-                }}>
-                  {/* Outfit items images */}
-                  <div style={{
-                    display: "flex", gap: 2, height: 140, overflow: "hidden",
+            {(() => {
+              const outfit = outfits[currentOutfit];
+              const top = outfit.items.find(i => i.position === "top");
+              const bottom = outfit.items.find(i => i.position === "bottom");
+              const outerwear = outfit.items.find(i => i.position === "outerwear");
+              const footwear = outfit.items.find(i => i.position === "footwear" || i.position === "shoes");
+              const accessories = outfit.items.filter(i => i.position === "accessory");
+              const others = outfit.items.filter(i =>
+                !["top","bottom","outerwear","footwear","shoes","accessory"].includes(i.position)
+              );
+
+              const renderItem = (item, size = "medium") => {
+                const sizes = {
+                  large: { width: "100%", height: 180 },
+                  medium: { width: "100%", height: 140 },
+                  small: { width: "100%", height: 100 },
+                };
+                const s = sizes[size];
+                return (
+                  <div key={item.id} style={{
+                    width: s.width, height: s.height,
+                    borderRadius: 14, overflow: "hidden", position: "relative",
                   }}>
-                    {outfit.items.filter(item => item.image_url).map(item => (
-                      <div key={item.id} style={{
-                        flex: 1,
+                    {item.image_url ? (
+                      <div style={{
+                        width: "100%", height: "100%",
                         backgroundImage: `url(${item.image_url})`,
                         backgroundSize: "cover", backgroundPosition: "center",
                       }} />
-                    ))}
-                    {outfit.items.filter(item => !item.image_url).length > 0 && (
+                    ) : (
                       <div style={{
-                        flex: 1, background: "rgba(255,255,255,0.03)",
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                        flexDirection: "column", gap: 4,
+                        width: "100%", height: "100%",
+                        background: "linear-gradient(135deg, rgba(196,149,106,0.1), rgba(196,149,106,0.03))",
+                        display: "flex", flexDirection: "column",
+                        alignItems: "center", justifyContent: "center",
+                        padding: 10, textAlign: "center",
                       }}>
-                        <span style={{ fontSize: 20 }}>🛍️</span>
-                        <span style={{ fontSize: 10, color: "var(--text-muted)" }}>
-                          {outfit.items.filter(item => !item.image_url).length} to buy
+                        <span style={{ fontSize: 24, marginBottom: 6 }}>🛍️</span>
+                        <span style={{ fontSize: 11, color: "var(--accent-light)", fontWeight: 500, lineHeight: 1.3 }}>
+                          {item.name || "Suggested"}
                         </span>
+                      </div>
+                    )}
+                    <div style={{
+                      position: "absolute", top: 8, right: 8,
+                      fontSize: 9, padding: "3px 7px", borderRadius: 4,
+                      background: item.is_owned ? "rgba(90,180,90,0.5)" : "rgba(196,149,106,0.5)",
+                      color: "#fff", fontWeight: 700, letterSpacing: 0.5,
+                      backdropFilter: "blur(4px)",
+                    }}>
+                      {item.is_owned ? "OWNED" : "BUY"}
+                    </div>
+                    <div style={{
+                      position: "absolute", bottom: 0, left: 0, right: 0,
+                      padding: "14px 10px 6px",
+                      background: "linear-gradient(transparent, rgba(0,0,0,0.6))",
+                    }}>
+                      <span style={{ fontSize: 10, color: "#fff", fontWeight: 600, textTransform: "uppercase", letterSpacing: 1 }}>
+                        {item.position}
+                      </span>
+                    </div>
+                  </div>
+                );
+              };
+
+              return (
+                <div style={{
+                  borderRadius: 20,
+                  background: "rgba(255,255,255,0.02)",
+                  border: "1px solid rgba(255,255,255,0.05)",
+                  overflow: "hidden",
+                  animation: "fadeIn 0.3s ease-out",
+                }}>
+                  {/* Vision board canvas */}
+                  <div style={{
+                    padding: 12,
+                    background: "rgba(0,0,0,0.15)",
+                  }}>
+                    {/* Top row — outerwear + top */}
+                    <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
+                      {outerwear && <div style={{ flex: 1 }}>{renderItem(outerwear, "medium")}</div>}
+                      {top && <div style={{ flex: 1 }}>{renderItem(top, outerwear ? "medium" : "large")}</div>}
+                      {!outerwear && !top && others[0] && <div style={{ flex: 1 }}>{renderItem(others[0], "large")}</div>}
+                    </div>
+
+                    {/* Bottom row — bottom + footwear */}
+                    <div style={{ display: "flex", gap: 8 }}>
+                      {bottom && <div style={{ flex: 1 }}>{renderItem(bottom, "medium")}</div>}
+                      {footwear && <div style={{ flex: 1 }}>{renderItem(footwear, "medium")}</div>}
+                    </div>
+
+                    {/* Accessories */}
+                    {accessories.length > 0 && (
+                      <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+                        {accessories.map(a => (
+                          <div key={a.id} style={{ flex: 1 }}>{renderItem(a, "small")}</div>
+                        ))}
                       </div>
                     )}
                   </div>
 
-                  <div style={{ padding: "16px 18px" }}>
-                    <h4 style={{ fontSize: 15, fontWeight: 600, margin: "0 0 6px" }}>{outfit.name}</h4>
-                    <p style={{ fontSize: 12.5, color: "var(--text-muted)", margin: "0 0 14px", lineHeight: 1.55 }}>
+                  {/* Outfit info */}
+                  <div style={{ padding: "20px 20px" }}>
+                    <h4 style={{ fontSize: 17, fontWeight: 600, margin: "0 0 10px" }}>{outfit.name}</h4>
+                    <p style={{
+                      fontSize: 13, color: "var(--text-muted)", margin: "0 0 18px",
+                      lineHeight: 1.65, fontStyle: "italic",
+                      borderLeft: "2px solid var(--accent)",
+                      paddingLeft: 14,
+                    }}>
                       {outfit.rationale}
                     </p>
 
                     {/* Item list */}
-                    <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 14 }}>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 18 }}>
                       {outfit.items.map(item => (
                         <div key={item.id} style={{
                           display: "flex", alignItems: "center", gap: 10,
-                          padding: "8px 12px", borderRadius: 10,
+                          padding: "8px 10px", borderRadius: 10,
                           background: "rgba(255,255,255,0.02)",
                           border: "1px solid rgba(255,255,255,0.04)",
                         }}>
@@ -197,43 +303,55 @@ export default function ScenarioScreen() {
                               fontSize: 12.5, fontWeight: 500, margin: 0,
                               whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
                             }}>{item.name || item.position}</p>
-                            <p style={{ fontSize: 11, color: "var(--text-muted)", margin: "2px 0 0" }}>
+                            <p style={{ fontSize: 10.5, color: "var(--text-muted)", margin: "2px 0 0" }}>
                               {item.is_owned ? "From your wardrobe" : "Suggested purchase"}
                             </p>
                           </div>
-                          <span style={{
-                            fontSize: 10, fontFamily: "var(--font-mono)",
-                            color: item.is_owned ? "var(--accent)" : "var(--text-muted)",
-                            padding: "3px 8px", borderRadius: 6,
-                            background: item.is_owned ? "rgba(196,149,106,0.1)" : "rgba(255,255,255,0.03)",
-                          }}>{item.position}</span>
+                          {!item.is_owned && item.affiliate_url && (
+                            <a href={item.affiliate_url} target="_blank" rel="noopener noreferrer" style={{
+                              fontSize: 11, padding: "5px 12px", borderRadius: 6,
+                              background: "var(--accent)", color: "#fff",
+                              textDecoration: "none", fontWeight: 600, flexShrink: 0,
+                            }}>Shop</a>
+                          )}
                         </div>
                       ))}
                     </div>
 
-                    {/* Save button */}
-                    {outfit.is_saved ? (
-                      <span style={{
-                        fontSize: 12, color: "var(--accent)", fontWeight: 600,
-                        fontFamily: "var(--font-mono)",
-                      }}>✓ Saved</span>
-                    ) : (
-                      <button onClick={() => saveOutfit(outfit.id)} style={{
-                        width: "100%", padding: "10px 0", borderRadius: 10,
-                        background: "rgba(196,149,106,0.12)",
-                        border: "1px solid rgba(196,149,106,0.25)",
-                        color: "var(--accent-light)", fontSize: 13, fontWeight: 600,
-                        cursor: "pointer",
-                      }}>Save this outfit</button>
-                    )}
+                    {/* Actions */}
+                    <div style={{ display: "flex", gap: 10 }}>
+                      {outfit.is_saved ? (
+                        <span style={{
+                          flex: 1, textAlign: "center", padding: "11px 0",
+                          fontSize: 13, color: "var(--accent)", fontWeight: 600,
+                          fontFamily: "var(--font-mono)",
+                        }}>✓ Saved</span>
+                      ) : (
+                        <button onClick={() => saveOutfit(outfit.id)} style={{
+                          flex: 1, padding: "11px 0", borderRadius: 10,
+                          background: "rgba(196,149,106,0.12)",
+                          border: "1px solid rgba(196,149,106,0.25)",
+                          color: "var(--accent-light)", fontSize: 13, fontWeight: 600,
+                          cursor: "pointer",
+                        }}>Save outfit</button>
+                      )}
+                      {currentOutfit < outfits.length - 1 && (
+                        <button onClick={() => setCurrentOutfit(currentOutfit + 1)} style={{
+                          flex: 1, padding: "11px 0", borderRadius: 10,
+                          background: "rgba(255,255,255,0.04)",
+                          border: "1px solid rgba(255,255,255,0.08)",
+                          color: "var(--text-primary)", fontSize: 13, fontWeight: 500,
+                          cursor: "pointer",
+                        }}>Next outfit →</button>
+                      )}
+                    </div>
                   </div>
                 </div>
-              ))}
-            </div>
+              );
+            })()}
 
-            {/* Generate more */}
-            <button onClick={generateOutfits} style={{
-              width: "100%", padding: "13px 0", borderRadius: 12, marginTop: 16,
+            <button onClick={() => { generateOutfits(); setCurrentOutfit(0); }} style={{
+              width: "100%", padding: "13px 0", borderRadius: 12, marginTop: 18,
               background: "rgba(255,255,255,0.04)",
               border: "1px solid rgba(255,255,255,0.08)",
               color: "var(--text-primary)", fontSize: 14, fontWeight: 500,

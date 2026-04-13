@@ -95,6 +95,12 @@ async def recommend_outfits(
         "style_pref": user.style_pref,
     } if user else None
 
+    if not user.gender or not user.body_type or not user.style_pref:
+        raise HTTPException(
+            status_code=400,
+            detail="Please complete your style profile before generating outfits"
+        )
+
     # Generate outfit recommendations
     ai_result = await generate_outfits(
         wardrobe=wardrobe_data,

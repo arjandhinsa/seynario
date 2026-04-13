@@ -30,8 +30,16 @@ async def generate_outfits(
         if parts:
             profile_text = f"\n\nUser profile:\n" + "\n".join(parts)
 
-    prompt = f"""You are a personal stylist for the Seynario app by SEYN. 
+    prompt = f"""You are a professional personal stylist for the Seynario app by SEYN.
 Given this person's wardrobe and their upcoming scenario, recommend {num_outfits} complete outfits.
+
+## CRITICAL RULES
+- NEVER recommend items that are inappropriate for the scenario's formality level
+- PRIORITISE using wardrobe pieces, but ONLY if they are genuinely appropriate for the scenario
+- If a wardrobe item doesn't match the scenario (e.g. a hoodie for a job interview, trainers for a wedding), DO NOT USE IT — suggest a purchase instead
+- It is BETTER to recommend buying appropriate items than to force-fit inappropriate wardrobe pieces
+- Only use wardrobe items that genuinely work for the scenario
+- If the wardrobe has nothing suitable for a scenario, recommend an entirely new outfit to buy
 
 ## Scenario
 Name: {scenario.get('name', 'Unknown')}
@@ -44,12 +52,14 @@ Style notes: {scenario.get('style_notes', '')}
 {wardrobe_text if wardrobe_text else "Wardrobe is empty — recommend items to buy."}
 
 ## Instructions
-- Use items from their wardrobe wherever possible (reference by id)
-- If they're missing a key piece, describe what they should buy (set garment_id to null)
-- Each outfit needs: a name, a rationale explaining WHY it works for this scenario, and a list of items
+- Only use wardrobe items (reference by id) if they GENUINELY suit this scenario's formality and style requirements
+- For any item that doesn't meet the scenario requirements, suggest what to buy instead (set garment_id to null)
+- Each outfit needs: a name, a rationale explaining WHY it works, and a list of items
 - Each item needs: position (top, bottom, outerwear, footwear, accessory), and either a garment_id from their wardrobe or a buy_description for something new
 - Be specific about WHY each piece works — colour theory, formality matching, texture contrast
+- If using a wardrobe item, explain why it's appropriate for this specific scenario
 - Use British English
+
 
 Return ONLY a JSON array, no other text:
 [
@@ -71,7 +81,6 @@ Return ONLY a JSON array, no other text:
 
     content = response.choices[0].message.content.strip()
 
-    # Strip markdown code fences if present
     if content.startswith("```"):
         content = content.split("\n", 1)[1]
         content = content.rsplit("```", 1)[0]
