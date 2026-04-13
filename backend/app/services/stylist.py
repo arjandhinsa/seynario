@@ -40,6 +40,8 @@ Given this person's wardrobe and their upcoming scenario, recommend {num_outfits
 - It is BETTER to recommend buying appropriate items than to force-fit inappropriate wardrobe pieces
 - Only use wardrobe items that genuinely work for the scenario
 - If the wardrobe has nothing suitable for a scenario, recommend an entirely new outfit to buy
+- When suggesting items to buy, be VERY specific in buy_description — include the user's gender, fit, colour, material, and item type (e.g. "slim fit white Oxford cotton shirt" not just "white shirt"). Use the user's gender from their profile.
+- buy_description must be written as a search query, not a sentence (e.g. "mens slim fit navy cotton chinos" not "a pair of slim-fitting navy chinos made from cotton")
 
 ## Scenario
 Name: {scenario.get('name', 'Unknown')}
@@ -68,7 +70,7 @@ Return ONLY a JSON array, no other text:
     "rationale": "2-3 sentences on why this works for the scenario",
     "items": [
       {{"position": "top", "garment_id": "abc-123", "buy_description": null}},
-      {{"position": "bottom", "garment_id": null, "buy_description": "slim navy chinos in cotton"}}
+      {{"position": "bottom", "garment_id": null, "buy_description": "mens slim fit navy cotton chinos", "buy_image_search": "navy slim chinos men"}}
     ]
   }}
 ]"""

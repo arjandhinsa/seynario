@@ -194,15 +194,26 @@ export default function ScenarioScreen() {
                     ) : (
                       <div style={{
                         width: "100%", height: "100%",
-                        background: "linear-gradient(135deg, rgba(196,149,106,0.1), rgba(196,149,106,0.03))",
+                        background: "linear-gradient(135deg, rgba(196,149,106,0.12), rgba(196,149,106,0.03))",
                         display: "flex", flexDirection: "column",
                         alignItems: "center", justifyContent: "center",
-                        padding: 10, textAlign: "center",
+                        padding: 12, textAlign: "center",
+                        gap: 6,
                       }}>
-                        <span style={{ fontSize: 24, marginBottom: 6 }}>🛍️</span>
-                        <span style={{ fontSize: 11, color: "var(--accent-light)", fontWeight: 500, lineHeight: 1.3 }}>
-                          {item.name || "Suggested"}
-                        </span>
+                        <span style={{ fontSize: 28 }}>🛍️</span>
+                        <span style={{
+                          fontSize: 11, color: "var(--accent-light)", fontWeight: 600,
+                          lineHeight: 1.4, maxWidth: "90%",
+                        }}>{item.name || "Suggested item"}</span>
+                        {item.affiliate_url && (
+                          <a href={item.affiliate_url} target="_blank" rel="noopener noreferrer"
+                            onClick={e => e.stopPropagation()}
+                            style={{
+                              fontSize: 10, padding: "4px 10px", borderRadius: 6,
+                              background: "var(--accent)", color: "#fff",
+                              textDecoration: "none", fontWeight: 600, marginTop: 2,
+                            }}>Shop on Amazon</a>
+                        )}
                       </div>
                     )}
                     <div style={{

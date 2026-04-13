@@ -32,6 +32,7 @@ class OutfitItemResponse(BaseModel):
     image_url: str | None
     name: str | None
     affiliate_url: str | None
+    affiliate_image: str | None
     affiliate_price: str | None
 
 class OutfitResponse(BaseModel):
@@ -127,13 +128,17 @@ async def recommend_outfits(
         for item_data in outfit_data.get("items", []):
             garment_id = item_data.get("garment_id")
             is_owned = garment_id is not None and garment_id in garment_lookup
-
+            
+            buy_desc = item_data.get("buy_description") if not is_owned else None
+            
             item = OutfitItem(
                 outfit_id=outfit.id,
                 garment_id=garment_id if is_owned else None,
                 position=item_data.get("position", "top"),
                 is_owned=is_owned,
-                affiliate_name=item_data.get("buy_description") if not is_owned else None,
+                affiliate_name=buy_desc,
+                affiliate_url=f"https://www.amazon.co.uk/s?k={buy_desc.replace(' ', '+')}&i=clothing&tag=seynario-21" if buy_desc else None,
+                affiliate_image=None,  # Placeholder until we can fetch real images
             )
             db.add(item)
 
@@ -165,6 +170,7 @@ async def recommend_outfits(
                     image_url=garment_lookup[item.garment_id].image_url if item.garment_id and item.garment_id in garment_lookup else None,
                     name=item.affiliate_name or (garment_lookup[item.garment_id].ai_description if item.garment_id and item.garment_id in garment_lookup else None),
                     affiliate_url=item.affiliate_url,
+                    affiliate_image=item.affiliate_image,
                     affiliate_price=item.affiliate_price,
                 )
                 for item in items

@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
 from app.database import engine, Base
-from app.routes import auth, wardrobe, scenarios, outfits
+from app.routes import auth, wardrobe, scenarios, outfits, shop
 
 
 @asynccontextmanager
@@ -41,7 +41,7 @@ app.include_router(auth.router, prefix="/api/auth", tags=["Auth"])
 app.include_router(wardrobe.router, prefix="/api/wardrobe", tags=["Wardrobe"])
 app.include_router(scenarios.router, prefix="/api/scenarios", tags=["Scenarios"])
 app.include_router(outfits.router, prefix="/api/outfits", tags=["Outfits"])
-#app.include_router(shop.router, prefix="/api/shop", tags=["Shop"])
+app.include_router(shop.router, prefix="/api/shop", tags=["Shop"])
 
 
 @app.get("/api/health")
