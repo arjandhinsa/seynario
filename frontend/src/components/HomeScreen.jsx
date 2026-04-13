@@ -47,11 +47,18 @@ export default function HomeScreen() {
         <div style={{ padding: "36px 0 28px", animation: "fadeIn 0.7s ease-out" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
             <div style={{ fontSize: 10, fontFamily: "var(--font-mono)", color: "var(--text-muted)", letterSpacing: 4, textTransform: "uppercase" }}>SEYN</div>
-            <button onClick={logout} style={{
-              background: "none", border: "1px solid rgba(255,255,255,0.07)",
-              color: "var(--text-muted)", borderRadius: 8, padding: "5px 12px",
-              fontSize: 11, cursor: "pointer",
-            }}>Log out</button>
+            <div style={{ display: "flex", gap: 8 }}>
+              <button onClick={() => navigate("/profile")} style={{
+                background: "none", border: "1px solid rgba(255,255,255,0.07)",
+                color: "var(--text-muted)", borderRadius: 8, padding: "5px 12px",
+                fontSize: 11, cursor: "pointer",
+              }}>Profile</button>
+              <button onClick={logout} style={{
+                background: "none", border: "1px solid rgba(255,255,255,0.07)",
+                color: "var(--text-muted)", borderRadius: 8, padding: "5px 12px",
+                fontSize: 11, cursor: "pointer",
+              }}>Log out</button>
+            </div>
           </div>
           <h1 style={{ fontSize: 30, fontWeight: 700, letterSpacing: "-0.03em", marginBottom: 6, color: "var(--accent-light)" }}>Seynario</h1>
           <p style={{ fontSize: 13, color: "var(--text-muted)", fontFamily: "var(--font-mono)", letterSpacing: 1.5 }}>Dress for the scenario</p>
