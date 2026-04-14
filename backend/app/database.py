@@ -8,11 +8,18 @@ from sqlalchemy.orm import DeclarativeBase
 from app.config import settings
 
 
+from sqlalchemy.pool import NullPool
+
+is_postgres = "postgresql" in settings.DATABASE_URL or "supabase" in settings.DATABASE_URL
+
 engine = create_async_engine(
     settings.DATABASE_URL,
     echo=(settings.APP_ENV == "development"),
-    pool_pre_ping=True,
-    connect_args={"prepared_statement_cache_size": 0} if "supabase" in settings.DATABASE_URL else {},
+    poolclass=NullPool if is_postgres else None,
+    connect_args={
+        "prepared_statement_cache_size": 0,
+        "statement_cache_size": 0,
+    } if is_postgres else {},
 )
 
 SessionLocal = async_sessionmaker(
