@@ -59,3 +59,39 @@ class DemoOutfit(Base):
     __table_args__ = (
         UniqueConstraint("scenario_id", "variant", name="uq_demo_scenario_variant"),
     )
+
+
+class DemoClick(Base):
+    """
+    Server-side log of one click on a demo outfit's affiliate item link.
+
+    The /api/r/:outfit_id/:item_id endpoint writes a row before issuing
+    the 302 to Amazon. Amazon's affiliate cookie alone doesn't give us
+    visibility into which scenario/outfit/item drove the click, so this
+    table is the source of truth for demo conversion analytics.
+
+    `anon_session_id` lets us collapse repeat clicks from the same browser
+    session into one user without ever issuing a JWT or touching the
+    user-auth flow. Populated from a cookie set by the demo frontend, or
+    null for direct hits (curl, share links, etc).
+    """
+
+    __tablename__ = "demo_clicks"
+
+    id: Mapped[str] = mapped_column(
+        String(36), primary_key=True, default=lambda: str(uuid.uuid4()),
+    )
+    outfit_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("demo_outfits.id", ondelete="CASCADE"),
+        nullable=False, index=True,
+    )
+    # Slug from LibraryGarment.id — the specific item that was clicked.
+    item_id: Mapped[str] = mapped_column(String(120), nullable=False, index=True)
+
+    # Anonymous browser session, set client-side before redirect. Nullable
+    # so direct/curl hits still log.
+    anon_session_id: Mapped[str] = mapped_column(String(64), nullable=True)
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc),
+    )
