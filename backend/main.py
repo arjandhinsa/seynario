@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
 from app.database import engine, Base
-from app.routes import auth, wardrobe, scenarios, outfits, shop
+from app.routes import auth, wardrobe, scenarios, outfits, shop, demo, redirect_route as redirect
 
 
 @asynccontextmanager
@@ -13,6 +13,8 @@ async def lifespan(app: FastAPI):
     from app.models.wardrobe import Garment
     from app.models.outfit import Outfit, OutfitItem
     from app.models.scenario import Scenario
+    from app.models.library import LibraryGarment
+    from app.models.demo import DemoOutfit, DemoClick
 
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
@@ -42,6 +44,8 @@ app.include_router(wardrobe.router, prefix="/api/wardrobe", tags=["Wardrobe"])
 app.include_router(scenarios.router, prefix="/api/scenarios", tags=["Scenarios"])
 app.include_router(outfits.router, prefix="/api/outfits", tags=["Outfits"])
 app.include_router(shop.router, prefix="/api/shop", tags=["Shop"])
+app.include_router(demo.router, prefix="/api/demo", tags=["Demo"])
+app.include_router(redirect.router, prefix="/api/r", tags=["Affiliate"])
 
 
 @app.get("/api/health")

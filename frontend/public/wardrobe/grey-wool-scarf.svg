@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="240" height="240">
+  <g fill="none" stroke="#2A2A2A" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+    
+    <path d="M40 80 Q120 40 200 80 L196 116 Q120 80 44 116 Z" fill="#9C9690"></path>
+    
+    <path d="M80 100 L72 220 L98 220 L106 110 Z" fill="#9C9690"></path>
+    <path d="M134 110 L142 220 L168 220 L160 100 Z" fill="#9C9690"></path>
+    
+    <g stroke="#2A2A2A" stroke-width="0.5" opacity="0.35">
+      <path d="M44 88 Q120 56 196 88"></path>
+      <path d="M44 96 Q120 64 196 96"></path>
+      <path d="M44 104 Q120 72 196 104"></path>
+      <path d="M44 112 Q120 80 196 112"></path>
+      <line x1="78" y1="120" x2="72" y2="218"></line>
+      <line x1="80.4" y1="120" x2="74.4" y2="218"></line>
+      <line x1="82.8" y1="120" x2="76.8" y2="218"></line>
+      <line x1="85.2" y1="120" x2="79.2" y2="218"></line>
+      <line x1="87.6" y1="120" x2="81.6" y2="218"></line>
+      <line x1="90" y1="120" x2="84" y2="218"></line>
+      <line x1="92.4" y1="120" x2="86.4" y2="218"></line>
+      <line x1="94.8" y1="120" x2="88.8" y2="218"></line>
+      <line x1="97.2" y1="120" x2="91.2" y2="218"></line>
+      <line x1="99.6" y1="120" x2="93.6" y2="218"></line>
+      <line x1="102" y1="120" x2="96" y2="218"></line>
+      <line x1="104.4" y1="120" x2="98.4" y2="218"></line>
+      <line x1="136" y1="120" x2="142" y2="218"></line>
+      <line x1="138.4" y1="120" x2="144.4" y2="218"></line>
+      <line x1="140.8" y1="120" x2="146.8" y2="218"></line>
+      <line x1="143.2" y1="120" x2="149.2" y2="218"></line>
+      <line x1="145.6" y1="120" x2="151.6" y2="218"></line>
+      <line x1="148" y1="120" x2="154" y2="218"></line>
+      <line x1="150.4" y1="120" x2="156.4" y2="218"></line>
+      <line x1="152.8" y1="120" x2="158.8" y2="218"></line>
+      <line x1="155.2" y1="120" x2="161.2" y2="218"></line>
+      <line x1="157.6" y1="120" x2="163.6" y2="218"></line>
+      <line x1="160" y1="120" x2="166" y2="218"></line>
+      <line x1="162.4" y1="120" x2="168.4" y2="218"></line>
+    </g>
+    
+    <line x1="74" y1="220" x2="73" y2="232" stroke-width="0.9"></line>
+    <line x1="78" y1="220" x2="77" y2="232" stroke-width="0.9"></line>
+    <line x1="82" y1="220" x2="81" y2="232" stroke-width="0.9"></line>
+    <line x1="86" y1="220" x2="85" y2="232" stroke-width="0.9"></line>
+    <line x1="90" y1="220" x2="89" y2="232" stroke-width="0.9"></line>
+    <line x1="94" y1="220" x2="93" y2="232" stroke-width="0.9"></line>
+    <line x1="146" y1="220" x2="145" y2="232" stroke-width="0.9"></line>
+    <line x1="150" y1="220" x2="149" y2="232" stroke-width="0.9"></line>
+    <line x1="154" y1="220" x2="153" y2="232" stroke-width="0.9"></line>
+    <line x1="158" y1="220" x2="157" y2="232" stroke-width="0.9"></line>
+    <line x1="162" y1="220" x2="161" y2="232" stroke-width="0.9"></line>
+    <line x1="166" y1="220" x2="165" y2="232" stroke-width="0.9"></line>
+  </g>
+</svg>

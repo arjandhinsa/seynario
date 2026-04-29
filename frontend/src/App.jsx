@@ -7,15 +7,10 @@ import WardrobeScreen from "./components/WardrobeScreen.jsx";
 import ScenarioScreen from "./components/ScenarioScreen.jsx";
 import OutfitDetail from "./components/OutfitDetail.jsx";
 import ProfileScreen from "./components/ProfileScreen.jsx";
+import DemoScenarioPicker from "./components/DemoScenarioPicker.jsx";
+import DemoOutfitDetail from "./components/DemoOutfitDetail.jsx";
 
-function AppRoutes() {
-  const { user } = useAuth();
-  const navigate = useNavigate();
-
-  if (!user) {
-    return <LoginScreen onSuccess={() => navigate("/")} />;
-  }
-
+function AuthedRoutes() {
   return (
     <Routes>
       <Route path="/" element={<HomeScreen />} />
@@ -25,6 +20,22 @@ function AppRoutes() {
       <Route path="/outfit/:outfitId" element={<OutfitDetail />} />
       <Route path="/profile" element={<ProfileScreen />} />
       <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  );
+}
+
+function AppRoutes() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  return (
+    <Routes>
+      <Route path="/demo" element={<DemoScenarioPicker />} />
+      <Route path="/demo/scenarios/:scenarioId" element={<DemoOutfitDetail />} />
+      <Route
+        path="*"
+        element={user ? <AuthedRoutes /> : <LoginScreen onSuccess={() => navigate("/")} />}
+      />
     </Routes>
   );
 }

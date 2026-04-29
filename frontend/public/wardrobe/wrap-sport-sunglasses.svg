@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="240" height="240">
+  <g fill="none" stroke="#2A2A2A" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+    
+    <path d="M22 116&#xA;             L42 88&#xA;             L108 84&#xA;             Q116 84 118 92&#xA;             L118 110&#xA;             Q116 124 108 128&#xA;             L60 138&#xA;             Q34 138 26 130&#xA;             Z" fill="#1A1A1A"></path>
+    
+    <path d="M32 114&#xA;             L46 96&#xA;             L104 92&#xA;             Q110 92 112 98&#xA;             L112 108&#xA;             Q110 118 104 121&#xA;             L60 130&#xA;             Q40 130 34 124&#xA;             Z" fill="#3A3A38" stroke-width="0.9"></path>
+
+    
+    <path d="M218 116&#xA;             L198 88&#xA;             L132 84&#xA;             Q124 84 122 92&#xA;             L122 110&#xA;             Q124 124 132 128&#xA;             L180 138&#xA;             Q206 138 214 130&#xA;             Z" fill="#1A1A1A"></path>
+    <path d="M208 114&#xA;             L194 96&#xA;             L136 92&#xA;             Q130 92 128 98&#xA;             L128 108&#xA;             Q130 118 136 121&#xA;             L180 130&#xA;             Q200 130 206 124&#xA;             Z" fill="#3A3A38" stroke-width="0.9"></path>
+
+    
+    <path d="M118 92 L122 92 L122 104 L118 104 Z" fill="#1A1A1A"></path>
+
+    
+    <path d="M22 116 L8 108" stroke-width="2"></path>
+    <path d="M218 116 L232 108" stroke-width="2"></path>
+
+    
+    <line x1="38" y1="92" x2="42" y2="100" stroke-width="0.9" opacity="0.7"></line>
+    <line x1="202" y1="92" x2="198" y2="100" stroke-width="0.9" opacity="0.7"></line>
+
+    
+    <path d="M44 102 L70 96 L98 100" stroke="#FFFEF8" stroke-width="1.1" opacity="0.7"></path>
+    <path d="M196 102 L170 96 L142 100" stroke="#FFFEF8" stroke-width="1.1" opacity="0.7"></path>
+    
+    <path d="M50 118 L80 116" stroke="#FFFEF8" stroke-width="0.6" opacity="0.35"></path>
+    <path d="M190 118 L160 116" stroke="#FFFEF8" stroke-width="0.6" opacity="0.35"></path>
+  </g>
+</svg>

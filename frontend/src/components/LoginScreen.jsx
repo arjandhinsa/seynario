@@ -98,6 +98,21 @@ export default function LoginScreen({ onSuccess }) {
             {isRegister ? "Log in" : "Sign up"}
           </span>
         </p>
+
+        <div className="demo-cta" style={{
+          marginTop: 28, paddingTop: 22, borderTop: "1px solid rgba(255,255,255,0.07)",
+          textAlign: "center",
+        }}>
+          <a href="/demo" style={{
+            color: "var(--accent-light)", fontSize: 14, fontWeight: 500,
+            textDecoration: "none", letterSpacing: "-0.01em",
+          }}>
+            Try with our sample wardrobe →
+          </a>
+          <p style={{ fontSize: 12, color: "var(--text-muted)", margin: "6px 0 0" }}>
+            18 sample items, no upload required.
+          </p>
+        </div>
       </div>
     </div>
   );

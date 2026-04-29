@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="240" height="240">
+  <g fill="none" stroke="#2A2A2A" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M58 70 L92 48 L108 56 L120 60 L132 56 L148 48 L182 70 L206 230 L172 236 L172 236 L68 236 L34 230 Z" fill="#B8956A"></path>
+    
+    <path d="M92 48 L106 120 L120 64 L134 120 L148 48" fill="#B8956A"></path>
+    
+    <circle cx="120" cy="142" r="1.8" fill="#2A2A2A" stroke="none"></circle>
+    <circle cx="120" cy="172" r="1.8" fill="#2A2A2A" stroke="none"></circle>
+    <circle cx="120" cy="202" r="1.8" fill="#2A2A2A" stroke="none"></circle>
+    <line x1="120" y1="64" x2="120" y2="232" stroke-width="0.9" opacity="0.55"></line>
+    
+    <line x1="76" y1="184" x2="106" y2="184" stroke-width="1"></line>
+    <line x1="134" y1="184" x2="164" y2="184" stroke-width="1"></line>
+    
+    <line x1="84" y1="116" x2="106" y2="116" stroke-width="1"></line>
+  </g>
+  <g fill="none" stroke="#8B6F47" stroke-width="0.9" stroke-linecap="round" stroke-dasharray="2.4 2.4" opacity="0.5">
+    <path d="M34 232 L68 238"></path>
+    <path d="M206 232 L172 238"></path>
+    <path d="M68 236 L172 236"></path>
+  </g>
+</svg>
