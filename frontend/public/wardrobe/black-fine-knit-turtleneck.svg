@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="240" height="240">
+  <g fill="none" stroke="#2A2A2A" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M70 64 L92 48 Q100 54 120 54 Q140 54 148 48 L170 64 L196 192 L168 200 L165 200 L165 204 Q120 208 75 204 L75 200 L72 200 L44 192 Z" fill="#1A1A1A"></path>
+    <path d="M100 40 L100 70 Q120 78 140 70 L140 40 Q120 36 100 40 Z" fill="#1A1A1A"></path>
+    <line x1="100" y1="56" x2="140" y2="56" stroke-width="0.7" opacity="0.5"></line>
+    <path d="M100 54 L108 80" opacity="0.55" stroke-width="1"></path>
+    <path d="M140 54 L132 80" opacity="0.55" stroke-width="1"></path>
+    <line x1="78" y1="196" x2="78" y2="204" stroke="#2A2A2A" stroke-width="0.8" opacity="0.45"></line>
+    <line x1="82" y1="196" x2="82" y2="204" stroke="#2A2A2A" stroke-width="0.8" opacity="0.45"></line>
+    <line x1="86" y1="196" x2="86" y2="204" stroke="#2A2A2A" stroke-width="0.8" opacity="0.45"></line>
+    <line x1="90" y1="196" x2="90" y2="204" stroke="#2A2A2A" stroke-width="0.8" opacity="0.45"></line>
+    <line x1="94" y1="196" x2="94" y2="204" stroke="#2A2A2A" stroke-width="0.8" opacity="0.45"></line>
+    <line x1="98" y1="196" x2="98" y2="204" stroke="#2A2A2A" stroke-width="0.8" opacity="0.45"></line>
+    <line x1="142" y1="196" x2="142" y2="204" stroke="#2A2A2A" stroke-width="0.8" opacity="0.45"></line>
+    <line x1="146" y1="196" x2="146" y2="204" stroke="#2A2A2A" stroke-width="0.8" opacity="0.45"></line>
+    <line x1="150" y1="196" x2="150" y2="204" stroke="#2A2A2A" stroke-width="0.8" opacity="0.45"></line>
+    <line x1="154" y1="196" x2="154" y2="204" stroke="#2A2A2A" stroke-width="0.8" opacity="0.45"></line>
+    <line x1="158" y1="196" x2="158" y2="204" stroke="#2A2A2A" stroke-width="0.8" opacity="0.45"></line>
+    <line x1="162" y1="196" x2="162" y2="204" stroke="#2A2A2A" stroke-width="0.8" opacity="0.45"></line>
+  </g>
+  <g fill="none" stroke="#8B6F47" stroke-width="0.9" stroke-linecap="round" stroke-dasharray="2.4 2.4" opacity="0.5">
+    <path d="M100 56 Q120 64 140 56"></path>
+    <path d="M44 194 L75 202"></path>
+    <path d="M196 194 L165 202"></path>
+    <path d="M76 200 Q120 204 164 200"></path>
+  </g>
+</svg>

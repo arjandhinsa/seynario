@@ -13,6 +13,8 @@ async def lifespan(app: FastAPI):
     from app.models.wardrobe import Garment
     from app.models.outfit import Outfit, OutfitItem
     from app.models.scenario import Scenario
+    from app.models.library import LibraryGarment
+    from app.models.demo import DemoOutfit
 
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)

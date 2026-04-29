@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="240" height="240">
+  <defs>
+    <pattern id="plaid" patternUnits="userSpaceOnUse" width="20" height="20" x="10" y="10">
+      <rect width="20" height="20" fill="#A12424"></rect>
+      <rect x="0" y="0" width="2" height="20" fill="#5A0D0D" opacity="0.7"></rect>
+      <rect x="9" y="0" width="1" height="20" fill="#1A1A1A" opacity="0.5"></rect>
+      <rect x="0" y="0" width="20" height="2" fill="#5A0D0D" opacity="0.7"></rect>
+      <rect x="0" y="9" width="20" height="1" fill="#1A1A1A" opacity="0.5"></rect>
+      <rect x="14" y="0" width="0.5" height="20" fill="#E08A8A" opacity="0.4"></rect>
+      <rect x="0" y="14" width="20" height="0.5" fill="#E08A8A" opacity="0.4"></rect>
+    </pattern>
+  </defs>
+  <g fill="none" stroke="#2A2A2A" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+    
+    <path d="M68 70 L96 50 L108 58 Q120 70 132 58 L144 50 L172 70 L194 200 L168 206 L168 210 L72 210 L72 206 L46 200 Z" fill="url(#plaid)"></path>
+    
+    <path d="M96 50 L104 84 L120 70 L136 84 L144 50" fill="url(#plaid)"></path>
+    
+    <line x1="120" y1="70" x2="120" y2="208" stroke-width="0.9" opacity="0.85"></line>
+    
+    <circle cx="120" cy="98" r="1.6" fill="#FFFEF8" stroke="#2A2A2A" stroke-width="0.7"></circle>
+    <circle cx="120" cy="124" r="1.6" fill="#FFFEF8" stroke="#2A2A2A" stroke-width="0.7"></circle>
+    <circle cx="120" cy="150" r="1.6" fill="#FFFEF8" stroke="#2A2A2A" stroke-width="0.7"></circle>
+    <circle cx="120" cy="176" r="1.6" fill="#FFFEF8" stroke="#2A2A2A" stroke-width="0.7"></circle>
+    <circle cx="120" cy="202" r="1.6" fill="#FFFEF8" stroke="#2A2A2A" stroke-width="0.7"></circle>
+    
+    <path d="M88 100 L116 100 L116 124 L88 124 Z" stroke-width="1"></path>
+    
+    <line x1="62" y1="194" x2="80" y2="200" stroke-width="0.9" opacity="0.6"></line>
+    <line x1="178" y1="194" x2="160" y2="200" stroke-width="0.9" opacity="0.6"></line>
+  </g>
+  <g fill="none" stroke="#8B6F47" stroke-width="0.9" stroke-linecap="round" stroke-dasharray="2.4 2.4" opacity="0.5">
+    <path d="M46 202 L72 208"></path>
+    <path d="M194 202 L168 208"></path>
+    <path d="M72 208 L168 208"></path>
+    <path d="M88 124 L116 124"></path>
+  </g>
+</svg>

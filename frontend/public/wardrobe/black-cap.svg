@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="240" height="240">
+  <g fill="none" stroke="#2A2A2A" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+    
+    <path d="M58 150&#xA;             Q56 116 78 104&#xA;             Q120 92 162 104&#xA;             Q184 116 182 150&#xA;             L58 150 Z" fill="#1A1A1A"></path>
+    
+    <path d="M96 100 Q120 108 144 100" stroke-width="0.9" opacity="0.5"></path>
+    
+    <line x1="120" y1="92" x2="120" y2="150" stroke-width="0.8" opacity="0.45"></line>
+    <path d="M92 96 Q90 124 86 150" stroke-width="0.8" opacity="0.45"></path>
+    <path d="M148 96 Q150 124 154 150" stroke-width="0.8" opacity="0.45"></path>
+    
+    <circle cx="120" cy="94" r="2.2" fill="#1A1A1A" stroke-width="1"></circle>
+    
+    <circle cx="100" cy="118" r="1.1" fill="none" stroke-width="0.7" opacity="0.6"></circle>
+    <circle cx="140" cy="118" r="1.1" fill="none" stroke-width="0.7" opacity="0.6"></circle>
+    <circle cx="78" cy="128" r="1.1" fill="none" stroke-width="0.7" opacity="0.6"></circle>
+    <circle cx="162" cy="128" r="1.1" fill="none" stroke-width="0.7" opacity="0.6"></circle>
+
+    
+    <path d="M52 150&#xA;             Q120 184 188 150&#xA;             Q120 174 52 150 Z" fill="#1A1A1A"></path>
+    
+    <path d="M58 150 Q120 162 182 150" stroke="#2A2A2A" stroke-width="1.2" fill="none"></path>
+
+    
+    <path d="M183 142 L200 142 L200 150 L186 150" stroke-width="1"></path>
+    <rect x="190" y="144" width="6" height="4" stroke-width="0.8"></rect>
+  </g>
+  <g fill="none" stroke="#8B6F47" stroke-width="0.9" stroke-linecap="round" stroke-dasharray="2.4 2.4" opacity="0.55">
+    
+    <path d="M58 156 Q120 178 182 156"></path>
+    <path d="M70 162 Q120 172 170 162"></path>
+  </g>
+</svg>

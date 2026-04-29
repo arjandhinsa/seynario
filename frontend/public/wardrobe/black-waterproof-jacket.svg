@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="240" height="240">
+  <g fill="none" stroke="#2A2A2A" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+    
+    <path d="M52 84 Q56 72 76 64 L92 56 Q108 52 120 52 Q132 52 148 56 L164 64 Q184 72 188 84 L206 218 L172 224 L172 226 L68 226 L68 224 L34 218 Z" fill="#1A1A1A"></path>
+    
+    <path d="M86 56 Q92 28 120 24 Q148 28 154 56 Q142 70 120 70 Q98 70 86 56 Z" fill="#1A1A1A"></path>
+    
+    <path d="M104 64 L100 80" stroke-width="0.9"></path>
+    <path d="M136 64 L140 80" stroke-width="0.9"></path>
+    <circle cx="100" cy="80" r="1.6" fill="#FFFEF8" stroke="#2A2A2A" stroke-width="0.8"></circle>
+    <circle cx="140" cy="80" r="1.6" fill="#FFFEF8" stroke="#2A2A2A" stroke-width="0.8"></circle>
+    
+    <path d="M100 64 Q120 72 140 64" stroke-width="0.9" opacity="0.7"></path>
+    
+    <path d="M114 70 L114 224" stroke-width="1"></path>
+    <line x1="120" y1="70" x2="120" y2="224" stroke-width="0.7" opacity="0.45"></line>
+    
+    <circle cx="114" cy="100" r="1.6" fill="#FFFEF8" stroke="#2A2A2A" stroke-width="0.8"></circle>
+    <circle cx="114" cy="132" r="1.6" fill="#FFFEF8" stroke="#2A2A2A" stroke-width="0.8"></circle>
+    <circle cx="114" cy="164" r="1.6" fill="#FFFEF8" stroke="#2A2A2A" stroke-width="0.8"></circle>
+    <circle cx="114" cy="196" r="1.6" fill="#FFFEF8" stroke="#2A2A2A" stroke-width="0.8"></circle>
+    
+    <path d="M76 110 L106 110" stroke-width="1.1"></path>
+    <g stroke="#2A2A2A" stroke-width="0.4" opacity="0.6">
+      <line x1="78" y1="108.5" x2="78.5" y2="111.5"></line>
+      <line x1="80" y1="108.5" x2="80.5" y2="111.5"></line>
+      <line x1="82" y1="108.5" x2="82.5" y2="111.5"></line>
+      <line x1="84" y1="108.5" x2="84.5" y2="111.5"></line>
+      <line x1="86" y1="108.5" x2="86.5" y2="111.5"></line>
+      <line x1="88" y1="108.5" x2="88.5" y2="111.5"></line>
+      <line x1="90" y1="108.5" x2="90.5" y2="111.5"></line>
+      <line x1="92" y1="108.5" x2="92.5" y2="111.5"></line>
+      <line x1="94" y1="108.5" x2="94.5" y2="111.5"></line>
+      <line x1="96" y1="108.5" x2="96.5" y2="111.5"></line>
+      <line x1="98" y1="108.5" x2="98.5" y2="111.5"></line>
+      <line x1="100" y1="108.5" x2="100.5" y2="111.5"></line>
+      <line x1="102" y1="108.5" x2="102.5" y2="111.5"></line>
+      <line x1="104" y1="108.5" x2="104.5" y2="111.5"></line>
+    </g>
+    
+    <path d="M64 168 L100 178" stroke-width="1.1"></path>
+    <path d="M140 178 L176 168" stroke-width="1.1"></path>
+    
+    <path d="M34 208 L62 216 L62 222 L36 214 Z" stroke-width="1"></path>
+    <path d="M206 208 L178 216 L178 222 L204 214 Z" stroke-width="1"></path>
+    
+    <path d="M68 220 Q120 228 172 220" stroke-width="0.9" opacity="0.65"></path>
+    <circle cx="68" cy="222" r="1.6" fill="#FFFEF8" stroke="#2A2A2A" stroke-width="0.8"></circle>
+    <circle cx="172" cy="222" r="1.6" fill="#FFFEF8" stroke="#2A2A2A" stroke-width="0.8"></circle>
+    
+    <path d="M76 76 Q120 84 164 76" stroke-width="0.7" opacity="0.45"></path>
+  </g>
+  <g fill="none" stroke="#8B6F47" stroke-width="0.9" stroke-linecap="round" stroke-dasharray="2.4 2.4" opacity="0.45">
+    <path d="M114 72 L114 220"></path>
+  </g>
+</svg>

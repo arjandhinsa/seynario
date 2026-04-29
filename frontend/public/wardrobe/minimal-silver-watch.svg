@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="240" height="240">
+  <g fill="none" stroke="#2A2A2A" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+    
+    <path d="M96 30 L144 30 L138 86 L102 86 Z" fill="#3A2A20"></path>
+    
+    <path d="M102 156 L138 156 L144 218 L96 218 Z" fill="#3A2A20"></path>
+    
+    <circle cx="120" cy="40" r="1.2" fill="#FFFEF8"></circle>
+    <circle cx="120" cy="52" r="1.2" fill="#FFFEF8"></circle>
+    <circle cx="120" cy="64" r="1.2" fill="#FFFEF8"></circle>
+    
+    <circle cx="120" cy="120" r="48" fill="#FFFEF8"></circle>
+    
+    <circle cx="120" cy="120" r="42" fill="#FFFEF8" stroke-width="0.9" opacity="0.6"></circle>
+    
+    <line x1="120" y1="80" x2="120" y2="86" stroke-width="1.2"></line>
+    <line x1="160" y1="120" x2="154" y2="120" stroke-width="1.2"></line>
+    <line x1="120" y1="160" x2="120" y2="154" stroke-width="1.2"></line>
+    <line x1="80" y1="120" x2="86" y2="120" stroke-width="1.2"></line>
+    
+    <line x1="120" y1="120" x2="100" y2="106" stroke-width="1.4"></line>
+    <line x1="120" y1="120" x2="138" y2="92" stroke-width="1.2"></line>
+    <circle cx="120" cy="120" r="2" fill="#2A2A2A" stroke="none"></circle>
+    
+    <path d="M168 116 L172 116 L172 124 L168 124 Z"></path>
+  </g>
+  <g fill="none" stroke="#8B6F47" stroke-width="0.9" stroke-linecap="round" stroke-dasharray="2.2 2.2" opacity="0.5">
+    <path d="M100 32 L106 84"></path>
+    <path d="M140 32 L134 84"></path>
+    <path d="M104 158 L100 216"></path>
+    <path d="M136 158 L140 216"></path>
+  </g>
+</svg>
