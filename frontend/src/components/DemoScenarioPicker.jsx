@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { api } from "../services/api";
+import { SketchbookPage } from "./sketchbook";
 
 export default function DemoScenarioPicker() {
   const navigate = useNavigate();
@@ -24,6 +25,7 @@ export default function DemoScenarioPicker() {
   }, []);
 
   return (
+    <SketchbookPage>
     <div style={{ minHeight: "100vh", padding: "0 22px 60px" }}>
       <div style={{
         position: "fixed", inset: 0, pointerEvents: "none",
@@ -111,5 +113,6 @@ export default function DemoScenarioPicker() {
         )}
       </div>
     </div>
+    </SketchbookPage>
   );
 }

@@ -1,0 +1,152 @@
+/* =====================================================================
+   Seynario · Sketchbook design system
+   ---------------------------------------------------------------------
+   Imported once in main.jsx after globals.css. Class names are .sb-*
+   prefixed so they don't collide with anything else.
+
+   Light mode = paper page. Dark mode = warm-charcoal page. Polaroid
+   cards stay paper-white in both modes — they're the "lit objects"
+   in a still-life composition either way.
+   ===================================================================== */
+
+@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=DM+Sans:wght@400;500;600&family=Caveat:wght@400;500;600&display=swap");
+
+:root {
+  /* Light-mode tokens (defaults). Dark mode flips a subset below. */
+  --sb-paper:           #FAF5EC;
+  --sb-paper-card:      #FFFEF8;     /* polaroids, swatches — same in both modes */
+  --sb-paper-edge:      #E8DFCD;
+  --sb-charcoal:        #2A2A2A;
+  --sb-charcoal-soft:   rgba(42, 42, 42, 0.6);
+  --sb-sepia:           #8B6F47;
+  --sb-sepia-soft:      rgba(139, 111, 71, 0.5);
+
+  --sb-ink:             #1F1E1A;     /* dark masthead/footer in BOTH modes */
+  --sb-ink-soft:        #9C8E6A;     /* dim sepia-on-dark text */
+
+  --sb-sticky:          #FBE9D8;     /* sticky-note background */
+
+  /* Accent palette — used per-page or per-scenario */
+  --sb-terracotta:      #C66B3D;
+  --sb-mustard:         #D4A547;
+  --sb-coral:           #E89B7A;
+  --sb-indigo:          #3D5A7A;
+  --sb-ink-blue:        #5A7A9A;
+  --sb-sage:            #8FA68E;
+  --sb-plum:            #7B5C7A;
+
+  /* Typography stacks */
+  --sb-font-display:    "Playfair Display", Georgia, serif;
+  --sb-font-body:       "DM Sans", system-ui, -apple-system, sans-serif;
+  --sb-font-hand:       "Caveat", cursive;
+
+  /* Layout */
+  --sb-radius:          2px;
+  --sb-shadow-pin:      0 8px 18px -10px rgba(42,42,42,.35),
+                        0 1px 0 rgba(42,42,42,.08);
+  --sb-shadow-card:     0 4px 10px -6px rgba(42,42,42,.35);
+
+  /* Per-page accent — set inline on a parent to rotate */
+  --sb-accent:          var(--sb-terracotta);
+}
+
+[data-theme="dark"] {
+  --sb-paper:           #1F1E1A;
+  --sb-paper-edge:      #15140F;
+  --sb-charcoal:        #F0E8D5;
+  --sb-charcoal-soft:   rgba(240, 232, 213, 0.6);
+  --sb-sepia:           #C7B68C;
+  --sb-sepia-soft:      rgba(199, 182, 140, 0.5);
+  --sb-sticky:          #3A331F;
+  /* paper-card stays #FFFEF8, ink + accents unchanged */
+}
+
+/* ---------- Base typography utilities ---------- */
+.sb-display    { font-family: var(--sb-font-display); font-weight: 500; letter-spacing: -0.01em; line-height: 1; }
+.sb-display-xl { font-size: clamp(40px, 7vw, 72px); }
+.sb-display-lg { font-size: clamp(28px, 4vw, 40px); }
+.sb-display-md { font-size: 24px; font-style: italic; }
+
+.sb-body       { font-family: var(--sb-font-body); font-size: 15px; line-height: 1.7; color: var(--sb-charcoal); }
+.sb-body-drop::first-letter {
+  font-family: var(--sb-font-display);
+  font-size: 44px;
+  line-height: 0.9;
+  float: left;
+  margin: 6px 8px 0 0;
+  color: var(--sb-accent);
+  font-weight: 500;
+}
+
+.sb-hand       { font-family: var(--sb-font-hand); font-weight: 500; line-height: 1.2; }
+.sb-hand-lg    { font-size: 24px; }
+.sb-hand-md    { font-size: 18px; }
+.sb-hand-sm    { font-size: 15px; }
+.sb-hand-sepia { color: var(--sb-sepia); }
+
+.sb-eyebrow {
+  font-family: var(--sb-font-body);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--sb-sepia);
+}
+
+/* ---------- Page shell (use on the outer wrapper of each page) ---------- */
+.sb-page {
+  position: relative;
+  background: var(--sb-paper);
+  color: var(--sb-charcoal);
+  font-family: var(--sb-font-body);
+  min-height: 100vh;
+  overflow: hidden;
+}
+.sb-page > * { position: relative; z-index: 1; }
+
+.sb-page__grain {
+  position: absolute;
+  inset: 0;
+  opacity: 0.32;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+  z-index: 0;
+}
+[data-theme="dark"] .sb-page__grain { mix-blend-mode: screen; opacity: 0.18; }
+
+
+/* ---------- Legacy bridge ----------
+   Inside a sketchbook page, redirect the old globals.css variables to
+   the sketchbook palette so existing inline styles in legacy components
+   pick up the new aesthetic without us re-skinning every line yet.
+   Remove this block once all components are properly re-skinned. */
+.sb-page {
+  --bg:           var(--sb-paper);
+  --surface:      var(--sb-paper-card);
+  --text-primary: var(--sb-charcoal);
+  --text-muted:   var(--sb-charcoal-soft);
+  --accent:       var(--sb-terracotta);
+  --accent-light: var(--sb-sepia);
+  --accent-glow:  rgba(198, 107, 61, 0.2);
+  /* (existing colour bridge above) */
+  --font-body:    var(--sb-font-body);     /* DM Sans replaces Outfit */
+  --font-mono:    var(--sb-font-body); 
+}
+
+/* And these new rules — auto-upgrade headings to Playfair when inside a sketchbook page */
+.sb-page h1,
+.sb-page h2,
+.sb-page h3 {
+  font-family: var(--sb-font-display);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+/* ---------- Mobile breakpoints ---------- */
+@media (max-width: 640px) {
+  .sb-display-xl { font-size: clamp(34px, 11vw, 48px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; animation: none !important; }
+}
