@@ -1,10 +1,9 @@
 import { useEffect, useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { api } from "../services/api";
-import { SketchbookPage } from "./sketchbook";
+import { SketchbookPage, Masthead } from "./sketchbook";
 
 export default function DemoScenarioPicker() {
-  const navigate = useNavigate();
   const [scenarios, setScenarios] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -26,31 +25,19 @@ export default function DemoScenarioPicker() {
 
   return (
     <SketchbookPage>
-    <div style={{ minHeight: "100vh", padding: "0 22px 60px" }}>
-      <div style={{
-        position: "fixed", inset: 0, pointerEvents: "none",
-        background: "radial-gradient(ellipse 500px 350px at 20% 20%, rgba(196,149,106,0.06), transparent), radial-gradient(ellipse 400px 400px at 80% 80%, rgba(160,120,90,0.04), transparent)",
-      }} />
+      <Masthead
+        title="SEYNARIO"
+        eyebrow="Sample wardrobe demo"
+        right={<Link to="/">← Back to sign in</Link>}
+      />
 
-      <div style={{ position: "relative", maxWidth: 720, margin: "0 auto" }}>
-        <header style={{ padding: "28px 0 22px" }}>
-          <button onClick={() => navigate("/")} style={{
-            background: "none", border: "none", color: "var(--text-muted)",
-            fontSize: 13, padding: 0, marginBottom: 18,
-            display: "flex", alignItems: "center", gap: 6,
-            fontFamily: "var(--font-body)",
-          }}>← Back to sign in</button>
-
-          <div style={{ fontSize: 10, fontFamily: "var(--font-mono)", color: "var(--text-muted)", letterSpacing: 4, textTransform: "uppercase", marginBottom: 12 }}>
-            Sample wardrobe demo
-          </div>
-          <h1 style={{ fontSize: 26, fontWeight: 700, letterSpacing: "-0.03em", margin: 0, color: "var(--accent-light)" }}>
-            Pick a scenario.
-          </h1>
-          <p style={{ fontSize: 14, color: "var(--text-muted)", margin: "8px 0 0", lineHeight: 1.5 }}>
-            18 sample garments. {scenarios.length} occasions. No sign-up.
-          </p>
-        </header>
+      <main style={{ maxWidth: 720, margin: "0 auto", padding: "32px 22px 60px" }}>
+        <h1 className="sb-display sb-display-lg" style={{ marginBottom: 8 }}>
+          Pick a scenario.
+        </h1>
+        <p className="sb-body" style={{ color: "var(--sb-charcoal-soft)", marginBottom: 32 }}>
+          18 sample garments. {scenarios.length} occasions. No sign-up.
+        </p>
 
         {loading && (
           <p style={{ color: "var(--text-muted)", fontSize: 13, padding: "20px 0" }}>Loading…</p>
@@ -111,8 +98,7 @@ export default function DemoScenarioPicker() {
             No demo outfits cached yet. Run the pre-gen script.
           </p>
         )}
-      </div>
-    </div>
+      </main>
     </SketchbookPage>
   );
 }
