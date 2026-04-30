@@ -1,5 +1,7 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth.jsx";
+import { SketchbookPage, Masthead } from "./sketchbook";
 
 export default function LoginScreen({ onSuccess }) {
   const { login, register } = useAuth();
@@ -29,91 +31,91 @@ export default function LoginScreen({ onSuccess }) {
   };
 
   return (
-    <div style={{
-      minHeight: "100vh", display: "flex", alignItems: "center",
-      justifyContent: "center", padding: 24,
-    }}>
-      <div style={{
-        position: "fixed", inset: 0, pointerEvents: "none",
-        background: "radial-gradient(ellipse 500px 350px at 20% 20%, rgba(196,149,106,0.06), transparent), radial-gradient(ellipse 400px 400px at 80% 80%, rgba(160,120,90,0.04), transparent)",
-      }} />
+    <SketchbookPage>
+      <Masthead title="SEYNARIO" eyebrow="Vol. 01" right={null} />
 
-      <div style={{ position: "relative", width: "100%", maxWidth: 380, animation: "fadeIn 0.6s ease-out" }}>
-        <div style={{ textAlign: "center", marginBottom: 36 }}>
-          <div style={{ fontSize: 10, fontFamily: "var(--font-mono)", color: "var(--text-muted)", letterSpacing: 4, textTransform: "uppercase", marginBottom: 16 }}>SEYN</div>
-          <h1 style={{ fontSize: 28, fontWeight: 700, letterSpacing: "-0.03em", marginBottom: 6, color: "var(--accent-light)" }}>Seynario</h1>
-          <p style={{ fontSize: 13, color: "var(--text-muted)" }}>
-            {isRegister ? "Create your account" : "Welcome back"}
-          </p>
-        </div>
+      <main className="sb-login">
+        <header className="sb-login__head">
+          <div className="sb-eyebrow">A WORKING METHOD</div>
+          <h1 className="sb-display sb-display-xl sb-login__title">
+            Wear the occasion, with Seynario
+          </h1>
+        </header>
 
-        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        <hr className="sb-login__rule" />
+
+        <p className="sb-login__lede">
+          Photograph what you own. Tell us the occasion. We compose the look + explain it.
+        </p>
+
+        <div className="sb-login__form">
           {isRegister && (
-            <input
-              value={displayName} onChange={e => setDisplayName(e.target.value)}
-              placeholder="Display name"
-              style={{
-                padding: "12px 16px", borderRadius: 12,
-                background: "rgba(255,255,255,0.045)", border: "1px solid rgba(255,255,255,0.07)",
-                color: "var(--text-primary)", fontSize: 14, outline: "none", fontFamily: "var(--font-body)",
-              }}
-            />
+            <div className="sb-login__field">
+              <label className="sb-login__label" htmlFor="login-display-name">Display name</label>
+              <input
+                id="login-display-name"
+                className="sb-login__input"
+                value={displayName}
+                onChange={e => setDisplayName(e.target.value)}
+                autoComplete="name"
+              />
+            </div>
           )}
-          <input
-            value={email} onChange={e => setEmail(e.target.value)}
-            placeholder="Email" type="email"
-            style={{
-              padding: "12px 16px", borderRadius: 12,
-              background: "rgba(255,255,255,0.045)", border: "1px solid rgba(255,255,255,0.07)",
-              color: "var(--text-primary)", fontSize: 14, outline: "none", fontFamily: "var(--font-body)",
-            }}
-          />
-          <input
-            value={password} onChange={e => setPassword(e.target.value)}
-            placeholder="Password" type="password"
-            onKeyDown={e => e.key === "Enter" && handleSubmit()}
-            style={{
-              padding: "12px 16px", borderRadius: 12,
-              background: "rgba(255,255,255,0.045)", border: "1px solid rgba(255,255,255,0.07)",
-              color: "var(--text-primary)", fontSize: 14, outline: "none", fontFamily: "var(--font-body)",
-            }}
-          />
+          <div className="sb-login__field">
+            <label className="sb-login__label" htmlFor="login-email">Email</label>
+            <input
+              id="login-email"
+              className="sb-login__input"
+              type="email"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              autoComplete="email"
+            />
+          </div>
+          <div className="sb-login__field">
+            <label className="sb-login__label" htmlFor="login-password">Password</label>
+            <input
+              id="login-password"
+              className="sb-login__input"
+              type="password"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              onKeyDown={e => e.key === "Enter" && handleSubmit()}
+              autoComplete={isRegister ? "new-password" : "current-password"}
+            />
+          </div>
 
-          {error && <p style={{ fontSize: 13, color: "#e24b4a", margin: 0 }}>{error}</p>}
+          {error && <p className="sb-login__error">{error}</p>}
 
-          <button onClick={handleSubmit} disabled={loading} style={{
-            padding: "13px 0", borderRadius: 12, border: "none",
-            background: "var(--accent)", color: "#fff",
-            fontSize: 15, fontWeight: 600, marginTop: 4,
-            opacity: loading ? 0.6 : 1,
-          }}>
-            {loading ? "..." : isRegister ? "Create account" : "Log in"}
+          <button
+            type="button"
+            className="sb-login__submit"
+            onClick={handleSubmit}
+            disabled={loading}
+          >
+            {loading ? "…" : isRegister ? "Sign up →" : "Sign in →"}
           </button>
         </div>
 
-        <p style={{ textAlign: "center", marginTop: 20, fontSize: 13, color: "var(--text-muted)" }}>
-          {isRegister ? "Already have an account?" : "Don't have an account?"}{" "}
-          <span onClick={() => { setIsRegister(!isRegister); setError(""); }}
-            style={{ color: "var(--accent-light)", cursor: "pointer" }}>
-            {isRegister ? "Log in" : "Sign up"}
-          </span>
+        <div className="sb-login__divider">or</div>
+
+        <Link to="/demo" className="sb-login__demo">
+          Try with our sample wardrobe →
+        </Link>
+        <p className="sb-login__demo-sub">
+          18 sample garments, no upload required.
         </p>
 
-        <div className="demo-cta" style={{
-          marginTop: 28, paddingTop: 22, borderTop: "1px solid rgba(255,255,255,0.07)",
-          textAlign: "center",
-        }}>
-          <a href="/demo" style={{
-            color: "var(--accent-light)", fontSize: 14, fontWeight: 500,
-            textDecoration: "none", letterSpacing: "-0.01em",
-          }}>
-            Try with our sample wardrobe →
-          </a>
-          <p style={{ fontSize: 12, color: "var(--text-muted)", margin: "6px 0 0" }}>
-            18 sample items, no upload required.
-          </p>
-        </div>
-      </div>
-    </div>
+        <p className="sb-login__toggle">
+          {isRegister ? "Already have an account?" : "Don't have an account?"}
+          <button
+            type="button"
+            onClick={() => { setIsRegister(!isRegister); setError(""); }}
+          >
+            {isRegister ? "Sign in →" : "Sign up →"}
+          </button>
+        </p>
+      </main>
+    </SketchbookPage>
   );
 }
