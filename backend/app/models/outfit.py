@@ -23,6 +23,10 @@ class Outfit(Base):
     )
     name: Mapped[str] = mapped_column(String(200), nullable=True)  # AI-generated name
     rationale: Mapped[str] = mapped_column(Text, nullable=True)  # WHY this works
+    # Optional ≤15-word stylist note ("scuff the heel slightly. perfect
+    # leather reads try-hard"). Mirrors DemoOutfit.sticky_note so the
+    # production OutfitDetail can render the same yellow callout.
+    sticky_note: Mapped[str] = mapped_column(Text, nullable=True)
     is_saved: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc),
@@ -60,6 +64,10 @@ class OutfitItem(Base):
     position: Mapped[str] = mapped_column(
         String(50), nullable=False,  # "top", "bottom", "shoes", "outerwear", "accessory"
     )
+    # Per-item handwritten note shown next to the polaroid in OutfitDetail.
+    # 8-15 word styling insight ("drape over crease — softens the silhouette
+    # without slouching it"). Mirrors the demo flow's item annotations.
+    annotation: Mapped[str] = mapped_column(String(500), nullable=True)
     is_owned: Mapped[bool] = mapped_column(Boolean, default=True)
 
     outfit = relationship("Outfit", back_populates="items")

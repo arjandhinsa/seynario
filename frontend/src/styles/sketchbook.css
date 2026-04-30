@@ -737,3 +737,31 @@
   margin-left: 4px;
 }
 .sb-login__toggle button:hover { color: var(--sb-charcoal); }
+
+
+/* ---------- Polaroid placeholder + buy badge ----------
+   Used by authed OutfitDetail when an item has no Cloudinary photo
+   (affiliate gap items). Dim the stand-in SVG so it doesn't read as
+   a real garment, and pin a small Caveat "to buy" tag in the corner. */
+
+.sb-polaroid--placeholder .sb-polaroid__photo img {
+  opacity: 0.6;
+  filter: grayscale(0.18);
+}
+
+.sb-polaroid__badge {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  z-index: 2;
+  font-family: var(--sb-font-hand);
+  font-size: 14px;
+  line-height: 1.1;
+  color: var(--sb-sepia);
+  background: rgba(255, 254, 248, 0.92);
+  padding: 2px 9px;
+  border: 1px solid var(--sb-sepia-soft);
+  letter-spacing: 0.02em;
+  pointer-events: none;
+  transform: rotate(-3deg);
+}
