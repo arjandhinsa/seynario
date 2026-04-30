@@ -31,6 +31,7 @@ class OutfitItemResponse(BaseModel):
     garment_id: str | None
     image_url: str | None
     name: str | None
+    annotation: str | None
     affiliate_url: str | None
     affiliate_image: str | None
     affiliate_price: str | None
@@ -39,6 +40,7 @@ class OutfitResponse(BaseModel):
     id: str
     name: str | None
     rationale: str | None
+    sticky_note: str | None
     scenario_id: str | None
     is_saved: bool
     items: list[OutfitItemResponse]
@@ -50,6 +52,29 @@ class OutfitListResponse(BaseModel):
     is_saved: bool
     created_at: str
     item_count: int
+
+
+# --- Helpers ---
+
+def _brief_garment_caption(garment) -> str | None:
+    """Short polaroid caption for an owned garment.
+    Prefers `colour subcategory`; falls through to subcategory alone, then
+    to a 30-char-truncated ai_description, then None. Mirrors the brevity
+    of LibraryGarment.name so the production OutfitDetail polaroids read
+    like the demo's, instead of dumping a full sentence into the caption.
+    """
+    if garment is None:
+        return None
+    colour = (garment.colour or "").strip()
+    sub = (garment.subcategory or "").strip()
+    if colour and sub:
+        return f"{colour} {sub}"
+    if sub:
+        return sub
+    desc = (garment.ai_description or "").strip()
+    if not desc:
+        return None
+    return desc[:30].rstrip() + ("…" if len(desc) > 30 else "")
 
 
 # --- Endpoints ---
@@ -116,11 +141,16 @@ async def recommend_outfits(
     # Save outfits to database
     saved_outfits = []
     for outfit_data in ai_result["outfits"]:
+        sticky_raw = outfit_data.get("sticky_note")
+        if isinstance(sticky_raw, str) and not sticky_raw.strip():
+            sticky_raw = None
+
         outfit = Outfit(
             user_id=user_id,
             scenario_id=scenario.id,
             name=outfit_data.get("name"),
             rationale=outfit_data.get("rationale"),
+            sticky_note=sticky_raw,
         )
         db.add(outfit)
         await db.flush()
@@ -128,14 +158,18 @@ async def recommend_outfits(
         for item_data in outfit_data.get("items", []):
             garment_id = item_data.get("garment_id")
             is_owned = garment_id is not None and garment_id in garment_lookup
-            
+
             buy_desc = item_data.get("buy_description") if not is_owned else None
-            
+            annotation = item_data.get("annotation")
+            if isinstance(annotation, str) and not annotation.strip():
+                annotation = None
+
             item = OutfitItem(
                 outfit_id=outfit.id,
                 garment_id=garment_id if is_owned else None,
                 position=item_data.get("position", "top"),
                 is_owned=is_owned,
+                annotation=annotation,
                 affiliate_name=buy_desc,
                 affiliate_url=f"https://www.amazon.co.uk/s?k={buy_desc.replace(' ', '+')}&i=clothing&tag=seynario-21" if buy_desc else None,
                 affiliate_image=None,  # Placeholder until we can fetch real images
@@ -159,6 +193,7 @@ async def recommend_outfits(
             id=outfit.id,
             name=outfit.name,
             rationale=outfit.rationale,
+            sticky_note=outfit.sticky_note,
             scenario_id=outfit.scenario_id,
             is_saved=outfit.is_saved,
             items=[
@@ -168,7 +203,10 @@ async def recommend_outfits(
                     is_owned=item.is_owned,
                     garment_id=item.garment_id,
                     image_url=garment_lookup[item.garment_id].image_url if item.garment_id and item.garment_id in garment_lookup else None,
-                    name=item.affiliate_name or (garment_lookup[item.garment_id].ai_description if item.garment_id and item.garment_id in garment_lookup else None),
+                    name=item.affiliate_name or _brief_garment_caption(
+                        garment_lookup.get(item.garment_id) if item.garment_id else None
+                    ),
+                    annotation=item.annotation,
                     affiliate_url=item.affiliate_url,
                     affiliate_image=item.affiliate_image,
                     affiliate_price=item.affiliate_price,
@@ -204,6 +242,64 @@ async def list_outfits(
         )
         for o in outfits
     ]
+
+
+@router.get("/{outfit_id}", response_model=OutfitResponse)
+async def get_outfit(
+    outfit_id: str,
+    user_id: str = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Single outfit with items, rationale, sticky note, and per-item
+    annotations. Powers the authed OutfitDetail flat-lay + why-this-works
+    + stockists view."""
+    result = await db.execute(
+        select(Outfit)
+        .where(Outfit.id == outfit_id, Outfit.user_id == user_id)
+        .options(selectinload(Outfit.items))
+    )
+    outfit = result.scalar_one_or_none()
+    if not outfit:
+        raise HTTPException(status_code=404, detail="Outfit not found")
+
+    # Build a lookup for owned garments so we can hydrate image_url + name.
+    owned_ids = [i.garment_id for i in outfit.items if i.garment_id]
+    garment_lookup = {}
+    if owned_ids:
+        garment_result = await db.execute(
+            select(Garment).where(Garment.id.in_(owned_ids))
+        )
+        garment_lookup = {g.id: g for g in garment_result.scalars().all()}
+
+    return OutfitResponse(
+        id=outfit.id,
+        name=outfit.name,
+        rationale=outfit.rationale,
+        sticky_note=outfit.sticky_note,
+        scenario_id=outfit.scenario_id,
+        is_saved=outfit.is_saved,
+        items=[
+            OutfitItemResponse(
+                id=item.id,
+                position=item.position,
+                is_owned=item.is_owned,
+                garment_id=item.garment_id,
+                image_url=(
+                    garment_lookup[item.garment_id].image_url
+                    if item.garment_id and item.garment_id in garment_lookup
+                    else None
+                ),
+                name=item.affiliate_name or _brief_garment_caption(
+                    garment_lookup.get(item.garment_id) if item.garment_id else None
+                ),
+                annotation=item.annotation,
+                affiliate_url=item.affiliate_url,
+                affiliate_image=item.affiliate_image,
+                affiliate_price=item.affiliate_price,
+            )
+            for item in outfit.items
+        ],
+    )
 
 
 @router.post("/{outfit_id}/save", status_code=200)

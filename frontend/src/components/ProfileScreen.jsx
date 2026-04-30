@@ -1,144 +1,268 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth.jsx";
 import { api } from "../services/api";
+import { SketchbookPage, Masthead } from "./sketchbook";
 
-const BODY_TYPES = ["Slim", "Athletic", "Average", "Curvy", "Plus-size"];
-const STYLE_PREFS = ["Minimal", "Classic", "Smart-casual", "Streetwear", "Preppy", "Bohemian", "Edgy"];
-const GENDERS = ["Male", "Female", "Non-binary", "Prefer not to say"];
+
+const GENDERS = [
+  { id: "male",                label: "Male" },
+  { id: "female",              label: "Female" },
+  { id: "non-binary",          label: "Non-binary" },
+  { id: "prefer not to say",   label: "Prefer not to say" },
+];
+
+const BODY_TYPES = [
+  { id: "slim",       label: "Slim" },
+  { id: "athletic",   label: "Athletic" },
+  { id: "average",    label: "Average" },
+  { id: "curvy",      label: "Curvy" },
+  { id: "plus-size",  label: "Plus-size" },
+];
+
+const STYLES = [
+  { id: "minimal",        label: "Minimal",        blurb: "Neutral palette, clean lines, no logos." },
+  { id: "classic",        label: "Classic",        blurb: "Timeless staples; oxford shirts, navy blazers, denim." },
+  { id: "smart-casual",   label: "Smart-casual",   blurb: "Polished but relaxed; chinos and an open collar." },
+  { id: "tailored",       label: "Tailored",       blurb: "Suit-led, structured shoulders, considered fit." },
+  { id: "old-money",      label: "Old money",      blurb: "Understated wealth; cashmere, no branding, soft tans." },
+  { id: "streetwear",     label: "Streetwear",     blurb: "Graphic tees, hoodies, sneakers, urban silhouette." },
+  { id: "preppy",         label: "Preppy",         blurb: "Collegiate; polos, loafers, gingham, blazers." },
+  { id: "bohemian",       label: "Bohemian",       blurb: "Flowing, eclectic, prints, layered jewellery." },
+  { id: "edgy",           label: "Edgy",           blurb: "Sharp, dark, leather, statement pieces." },
+  { id: "athleisure",     label: "Athleisure",     blurb: "Performance fabrics worn off the gym; clean trainers." },
+  { id: "vintage",        label: "Vintage",        blurb: "Pieces with history; thrifted, retro silhouettes." },
+  { id: "workwear",       label: "Workwear",       blurb: "Heritage utility; canvas, chambray, sturdy boots." },
+  { id: "dark-academia",  label: "Dark academia",  blurb: "Tweed, knitwear, oxford brogues, scholarly." },
+  { id: "cottagecore",    label: "Cottagecore",    blurb: "Pastoral, soft, linen, florals, hand-knits." },
+  { id: "gorpcore",       label: "Gorpcore",       blurb: "Technical outdoor; fleece, nylon, hiking shoes." },
+  { id: "romantic",       label: "Romantic",       blurb: "Lace, ruffles, soft tailoring, feminine drape." },
+  { id: "avant-garde",    label: "Avant-garde",    blurb: "Experimental cuts, architectural shapes, asymmetry." },
+  { id: "y2k",            label: "Y2K",            blurb: "Early 2000s nostalgia; low-rise, juicy palette." },
+];
+
 
 export default function ProfileScreen() {
   const navigate = useNavigate();
-  const { getToken } = useAuth();
+  const { getToken, logout } = useAuth();
+
+  const [user, setUser] = useState(null);
+  const [garmentsCount, setGarmentsCount] = useState(0);
+  const [briefsCount, setBriefsCount] = useState(0);
+  const [savedCount, setSavedCount] = useState(0);
+
+  const [gender, setGender] = useState("");
   const [bodyType, setBodyType] = useState("");
   const [stylePref, setStylePref] = useState("");
-  const [gender, setGender] = useState("");
-  const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
+  const [hoveredStyle, setHoveredStyle] = useState(null);
 
   useEffect(() => {
-    const load = async () => {
+    let cancelled = false;
+    (async () => {
       const token = getToken();
       try {
-        const user = await api.get("/api/auth/me", token);
-        if (user.body_type) setBodyType(user.body_type);
-        if (user.style_pref) setStylePref(user.style_pref);
-        if (user.gender) setGender(user.gender);
+        const [u, g, o] = await Promise.all([
+          api.get("/api/auth/me", token),
+          api.get("/api/wardrobe/", token),
+          api.get("/api/outfits/", token),
+        ]);
+        if (cancelled) return;
+        setUser(u);
+        if (u.gender) setGender(u.gender);
+        if (u.body_type) setBodyType(u.body_type);
+        if (u.style_pref) setStylePref(u.style_pref);
+        setGarmentsCount(Array.isArray(g) ? g.length : 0);
+        setBriefsCount(Array.isArray(o) ? o.length : 0);
+        setSavedCount(Array.isArray(o) ? o.filter((x) => x.is_saved).length : 0);
       } catch (e) {
         console.error("Failed to load profile:", e);
       }
-    };
-    load();
+    })();
+    return () => { cancelled = true; };
   }, []);
 
-  const handleSave = async () => {
-    setSaving(true);
-    const token = getToken();
+  const updateField = async (field, value) => {
+    if (field === "gender") setGender(value);
+    else if (field === "body_type") setBodyType(value);
+    else if (field === "style_pref") setStylePref(value);
     try {
-      await api.put("/api/auth/me", {
-        body_type: bodyType || null,
-        style_pref: stylePref || null,
-        gender: gender || null,
-      }, token);
-      setSaved(true);
-      setTimeout(() => setSaved(false), 2000);
+      await api.put("/api/auth/me", { [field]: value || null }, getToken());
     } catch (e) {
-      console.error("Failed to save:", e);
-    } finally {
-      setSaving(false);
+      console.error("Failed to update profile:", e);
     }
   };
 
-  const chipStyle = (selected) => ({
-    padding: "8px 16px", borderRadius: 20,
-    background: selected ? "rgba(196,149,106,0.15)" : "rgba(255,255,255,0.025)",
-    border: `1px solid ${selected ? "rgba(196,149,106,0.4)" : "rgba(255,255,255,0.06)"}`,
-    color: selected ? "var(--accent-light)" : "var(--text-muted)",
-    fontSize: 13, fontWeight: 500, cursor: "pointer",
-    transition: "all 0.2s",
-  });
+  const handleSignOut = () => {
+    logout();
+    navigate("/");
+  };
+
+  const heading = user?.display_name || user?.email || "Loading…";
+  const styleBlurb = useMemo(() => {
+    const slug = hoveredStyle ?? stylePref;
+    const found = STYLES.find((s) => s.id === slug);
+    return found?.blurb || "";
+  }, [hoveredStyle, stylePref]);
 
   return (
-    <div style={{ minHeight: "100vh", padding: "0 22px 40px" }}>
-      <div style={{
-        position: "fixed", inset: 0, pointerEvents: "none",
-        background: "radial-gradient(ellipse 500px 350px at 15% 15%, rgba(196,149,106,0.06), transparent)",
-      }} />
+    <SketchbookPage accent="var(--sb-plum)">
+      <Masthead
+        title="PROFILE"
+        right={<Link to="/">← Home</Link>}
+      />
 
-      <div style={{ position: "relative", zIndex: 1 }}>
-        <div style={{ padding: "22px 0 18px" }}>
-          <button onClick={() => navigate("/")} style={{
-            background: "none", border: "none", color: "var(--text-muted)",
-            cursor: "pointer", fontSize: 13.5, padding: "4px 0", marginBottom: 14,
-            display: "flex", alignItems: "center", gap: 6, fontFamily: "var(--font-body)",
-          }}>← Back</button>
-          <h2 style={{ fontSize: 22, fontWeight: 700, margin: 0 }}>Your Style Profile</h2>
-          <p style={{ fontSize: 13, color: "var(--text-muted)", margin: "6px 0 0", lineHeight: 1.5 }}>
-            Tell us about yourself so Seynario can give you better outfit recommendations.
+      <main className="sb-detail">
+        <header className="sb-detail__head">
+          <h1 className="sb-display sb-display-xl">{heading}</h1>
+          <p className="sb-body" style={{
+            color: "var(--sb-charcoal-soft)", margin: "12px 0 0",
+          }}>
+            {garmentsCount} {garmentsCount === 1 ? "piece" : "pieces"} catalogued.
           </p>
-        </div>
+        </header>
 
-        {/* Gender */}
-        <div style={{ marginBottom: 28, animation: "slideUp 0.4s ease-out" }}>
-          <h3 style={{
-            fontSize: 11, fontFamily: "var(--font-mono)", color: "var(--accent)",
-            letterSpacing: 2, textTransform: "uppercase", marginBottom: 12,
-          }}>I identify as</h3>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-            {GENDERS.map(g => (
-              <button key={g} onClick={() => setGender(g.toLowerCase())}
-                style={chipStyle(gender === g.toLowerCase())}>
-                {g}
-              </button>
-            ))}
-          </div>
-        </div>
+        <hr style={{
+          border: 0, borderTop: "1px dashed var(--sb-sepia)",
+          margin: "28px 0",
+        }} />
 
-        {/* Body type */}
-        <div style={{ marginBottom: 28, animation: "slideUp 0.4s ease-out 0.1s both" }}>
-          <h3 style={{
-            fontSize: 11, fontFamily: "var(--font-mono)", color: "var(--accent)",
-            letterSpacing: 2, textTransform: "uppercase", marginBottom: 12,
-          }}>Body type</h3>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-            {BODY_TYPES.map(b => (
-              <button key={b} onClick={() => setBodyType(b.toLowerCase())}
-                style={chipStyle(bodyType === b.toLowerCase())}>
-                {b}
-              </button>
-            ))}
-          </div>
-        </div>
+        <section style={{ marginBottom: 36 }}>
+          <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+            <StatRow label="Briefs composed" value={briefsCount} />
+            <StatRow label="Looks saved" value={savedCount} />
+          </ul>
+        </section>
 
-        {/* Style preference */}
-        <div style={{ marginBottom: 32, animation: "slideUp 0.4s ease-out 0.2s both" }}>
-          <h3 style={{
-            fontSize: 11, fontFamily: "var(--font-mono)", color: "var(--accent)",
-            letterSpacing: 2, textTransform: "uppercase", marginBottom: 12,
-          }}>Style preference</h3>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-            {STYLE_PREFS.map(s => (
-              <button key={s} onClick={() => setStylePref(s.toLowerCase())}
-                style={chipStyle(stylePref === s.toLowerCase())}>
-                {s}
-              </button>
-            ))}
-          </div>
-        </div>
+        <section>
+          <p className="sb-eyebrow" style={{ marginBottom: 18 }}>PREFERENCES</p>
 
-        {/* Save button */}
-        <button onClick={handleSave} disabled={saving} style={{
-          width: "100%", padding: "14px 0", borderRadius: 12,
-          background: saved ? "rgba(90,180,90,0.15)" : "var(--accent)",
-          border: saved ? "1px solid rgba(90,180,90,0.3)" : "none",
-          color: saved ? "#7dce82" : "#fff",
-          fontSize: 15, fontWeight: 600, cursor: "pointer",
-          transition: "all 0.3s",
-          animation: "slideUp 0.4s ease-out 0.3s both",
-        }}>
-          {saving ? "Saving..." : saved ? "✓ Saved" : "Save profile"}
-        </button>
-      </div>
+          <FieldGroup label="I identify as">
+            <ChipRow
+              options={GENDERS}
+              selected={gender}
+              onSelect={(id) => { if (id !== gender) updateField("gender", id); }}
+            />
+          </FieldGroup>
+
+          <FieldGroup label="Body type">
+            <ChipRow
+              options={BODY_TYPES}
+              selected={bodyType}
+              onSelect={(id) => { if (id !== bodyType) updateField("body_type", id); }}
+            />
+          </FieldGroup>
+
+          <FieldGroup label="Style preference">
+            <ChipRow
+              options={STYLES}
+              selected={stylePref}
+              onSelect={(id) => { if (id !== stylePref) updateField("style_pref", id); }}
+              onHover={setHoveredStyle}
+            />
+            <p style={{
+              fontFamily: "var(--sb-font-hand)", fontSize: 18,
+              color: "var(--sb-sepia)", margin: "14px 0 0",
+              minHeight: 26, lineHeight: 1.4,
+            }}>{styleBlurb}</p>
+          </FieldGroup>
+        </section>
+
+        <hr style={{
+          border: 0, borderTop: "1px dashed var(--sb-sepia)",
+          margin: "36px 0 22px",
+        }} />
+
+        <section style={{ textAlign: "center", paddingBottom: 12 }}>
+          <button
+            type="button"
+            onClick={handleSignOut}
+            style={{
+              background: "none", border: 0, padding: 0,
+              fontFamily: "var(--sb-font-hand)", fontSize: 19,
+              color: "var(--sb-sepia)",
+              textDecoration: "underline wavy",
+              textUnderlineOffset: 4,
+              cursor: "pointer",
+            }}
+          >Sign out</button>
+        </section>
+      </main>
+    </SketchbookPage>
+  );
+}
+
+
+function StatRow({ label, value }) {
+  return (
+    <li style={{
+      display: "grid",
+      gridTemplateColumns: "1fr auto",
+      alignItems: "baseline",
+      padding: "14px 0",
+      borderBottom: "1px dashed rgba(139, 111, 71, 0.32)",
+    }}>
+      <span style={{
+        fontFamily: "var(--sb-font-body)", fontSize: 11,
+        letterSpacing: "0.18em", textTransform: "uppercase",
+        color: "var(--sb-sepia)",
+      }}>{label}</span>
+      <span style={{
+        fontFamily: "var(--sb-font-display)", fontSize: 20,
+        color: "var(--sb-charcoal)",
+      }}>{value}</span>
+    </li>
+  );
+}
+
+
+function FieldGroup({ label, children }) {
+  return (
+    <div style={{ marginBottom: 26 }}>
+      <p style={{
+        fontFamily: "var(--sb-font-hand)", fontSize: 18,
+        color: "var(--sb-sepia)", lineHeight: 1, margin: "0 0 12px",
+      }}>{label}</p>
+      {children}
     </div>
+  );
+}
+
+
+function ChipRow({ options, selected, onSelect, onHover }) {
+  return (
+    <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+      {options.map((opt) => (
+        <Chip
+          key={opt.id}
+          label={opt.label}
+          active={opt.id === selected}
+          onClick={() => onSelect(opt.id)}
+          onMouseEnter={() => onHover && onHover(opt.id)}
+          onMouseLeave={() => onHover && onHover(null)}
+        />
+      ))}
+    </div>
+  );
+}
+
+
+function Chip({ label, active, onClick, onMouseEnter, onMouseLeave }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+      style={{
+        padding: "10px 18px",
+        border: "1.4px solid var(--sb-charcoal)",
+        background: active ? "var(--sb-charcoal)" : "transparent",
+        color: active ? "var(--sb-paper)" : "var(--sb-charcoal)",
+        fontFamily: "var(--sb-font-display)", fontSize: 14,
+        letterSpacing: "0.02em",
+        cursor: "pointer", borderRadius: 0,
+        transition: "background 0.15s ease, color 0.15s ease",
+      }}
+    >{label}</button>
   );
 }

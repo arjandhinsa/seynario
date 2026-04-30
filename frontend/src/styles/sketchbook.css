@@ -1,0 +1,767 @@
+/* =====================================================================
+   Seynario · Sketchbook design system
+   ---------------------------------------------------------------------
+   Imported once in main.jsx after globals.css. Class names are .sb-*
+   prefixed so they don't collide with anything else.
+
+   Light mode = paper page. Dark mode = warm-charcoal page. Polaroid
+   cards stay paper-white in both modes — they're the "lit objects"
+   in a still-life composition either way.
+   ===================================================================== */
+
+@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=DM+Sans:wght@400;500;600&family=Caveat:wght@400;500;600&display=swap");
+
+:root {
+  /* Light-mode tokens (defaults). Dark mode flips a subset below. */
+  --sb-paper:           #FAF5EC;
+  --sb-paper-card:      #FFFEF8;     /* polaroids, swatches — same in both modes */
+  --sb-paper-edge:      #E8DFCD;
+  --sb-charcoal:        #2A2A2A;
+  --sb-charcoal-soft:   rgba(42, 42, 42, 0.6);
+  --sb-sepia:           #8B6F47;
+  --sb-sepia-soft:      rgba(139, 111, 71, 0.5);
+
+  --sb-ink:             #1F1E1A;     /* dark masthead/footer in BOTH modes */
+  --sb-ink-soft:        #9C8E6A;     /* dim sepia-on-dark text */
+
+  --sb-sticky:          #FBE9D8;     /* sticky-note background */
+
+  /* Accent palette — used per-page or per-scenario */
+  --sb-terracotta:      #C66B3D;
+  --sb-mustard:         #D4A547;
+  --sb-coral:           #E89B7A;
+  --sb-indigo:          #3D5A7A;
+  --sb-ink-blue:        #5A7A9A;
+  --sb-sage:            #8FA68E;
+  --sb-plum:            #7B5C7A;
+
+  /* Typography stacks */
+  --sb-font-display:    "Playfair Display", Georgia, serif;
+  --sb-font-body:       "DM Sans", system-ui, -apple-system, sans-serif;
+  --sb-font-hand:       "Caveat", cursive;
+
+  /* Layout */
+  --sb-radius:          2px;
+  --sb-shadow-pin:      0 8px 18px -10px rgba(42,42,42,.35),
+                        0 1px 0 rgba(42,42,42,.08);
+  --sb-shadow-card:     0 4px 10px -6px rgba(42,42,42,.35);
+
+  /* Per-page accent — set inline on a parent to rotate */
+  --sb-accent:          var(--sb-terracotta);
+}
+
+[data-theme="dark"] {
+  --sb-paper:           #1F1E1A;
+  --sb-paper-edge:      #15140F;
+  --sb-charcoal:        #F0E8D5;
+  --sb-charcoal-soft:   rgba(240, 232, 213, 0.6);
+  --sb-sepia:           #C7B68C;
+  --sb-sepia-soft:      rgba(199, 182, 140, 0.5);
+  --sb-sticky:          #3A331F;
+  /* paper-card stays #FFFEF8, ink + accents unchanged */
+}
+
+/* ---------- Base typography utilities ---------- */
+.sb-display    { font-family: var(--sb-font-display); font-weight: 500; letter-spacing: -0.01em; line-height: 1; }
+.sb-display-xl { font-size: clamp(40px, 7vw, 72px); }
+.sb-display-lg { font-size: clamp(28px, 4vw, 40px); }
+.sb-display-md { font-size: 24px; font-style: italic; }
+
+.sb-body       { font-family: var(--sb-font-body); font-size: 15px; line-height: 1.7; color: var(--sb-charcoal); }
+.sb-body-drop::first-letter {
+  font-family: var(--sb-font-display);
+  font-size: 44px;
+  line-height: 0.9;
+  float: left;
+  margin: 6px 8px 0 0;
+  color: var(--sb-accent);
+  font-weight: 500;
+}
+
+.sb-hand       { font-family: var(--sb-font-hand); font-weight: 500; line-height: 1.2; }
+.sb-hand-lg    { font-size: 24px; }
+.sb-hand-md    { font-size: 18px; }
+.sb-hand-sm    { font-size: 15px; }
+.sb-hand-sepia { color: var(--sb-sepia); }
+
+.sb-eyebrow {
+  font-family: var(--sb-font-body);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--sb-sepia);
+}
+
+/* ---------- Page shell (use on the outer wrapper of each page) ---------- */
+.sb-page {
+  position: relative;
+  background: var(--sb-paper);
+  color: var(--sb-charcoal);
+  font-family: var(--sb-font-body);
+  min-height: 100vh;
+  overflow: hidden;
+}
+.sb-page > * { position: relative; z-index: 1; }
+
+.sb-page__grain {
+  position: absolute;
+  inset: 0;
+  opacity: 0.32;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+  z-index: 0;
+}
+[data-theme="dark"] .sb-page__grain { mix-blend-mode: screen; opacity: 0.18; }
+
+
+/* ---------- Legacy bridge ----------
+   Inside a sketchbook page, redirect the old globals.css variables to
+   the sketchbook palette so existing inline styles in legacy components
+   pick up the new aesthetic without us re-skinning every line yet.
+   Remove this block once all components are properly re-skinned. */
+.sb-page {
+  --bg:           var(--sb-paper);
+  --surface:      var(--sb-paper-card);
+  --text-primary: var(--sb-charcoal);
+  --text-muted:   var(--sb-charcoal-soft);
+  --accent:       var(--sb-terracotta);
+  --accent-light: var(--sb-sepia);
+  --accent-glow:  rgba(198, 107, 61, 0.2);
+  /* (existing colour bridge above) */
+  --font-body:    var(--sb-font-body);     /* DM Sans replaces Outfit */
+  --font-mono:    var(--sb-font-body); 
+}
+
+/* And these new rules — auto-upgrade headings to Playfair when inside a sketchbook page */
+.sb-page h1,
+.sb-page h2,
+.sb-page h3 {
+  font-family: var(--sb-font-display);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+/* ---------- Mobile breakpoints ---------- */
+@media (max-width: 640px) {
+  .sb-display-xl { font-size: clamp(34px, 11vw, 48px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; animation: none !important; }
+}
+
+/* ---------- Masthead — editorial chrome ---------- */
+.sb-masthead {
+  background: var(--sb-ink);
+  color: #F5EFE0;
+  padding: 14px 22px 12px;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 18px;
+  border-bottom: 3px solid #2A2A2A;
+  position: relative;
+}
+.sb-masthead::after {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; bottom: -3px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(199, 182, 140, 0.5), transparent);
+  pointer-events: none;
+}
+.sb-masthead__wordmark {
+  font-family: var(--sb-font-display);
+  font-size: 18px;
+  font-weight: 500;
+  letter-spacing: 0.32em;
+  color: #FAF5EC;
+}
+.sb-masthead__meta {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  font-family: var(--sb-font-body);
+}
+.sb-masthead__eyebrow {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #9C8E6A;
+}
+.sb-masthead__right {
+  font-size: 12px;
+  color: #C7B68C;
+}
+.sb-masthead__right a {
+  color: inherit;
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.15s ease;
+}
+.sb-masthead__right a:hover {
+  border-bottom-color: currentColor;
+}
+
+/* ---------- Polaroid (pinned photo card) ---------- */
+.sb-polaroid {
+  position: relative;
+  display: inline-block;
+  background: var(--sb-paper-card);
+  padding: 10px 10px 38px;
+  box-shadow: var(--sb-shadow-pin);
+  transform: rotate(var(--sb-tilt, -2deg));
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+.sb-polaroid:hover {
+  transform: rotate(0deg) translateY(-2px);
+  box-shadow: 0 14px 28px -14px rgba(42, 42, 42, 0.45);
+  z-index: 2;
+}
+.sb-polaroid__photo {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  background: var(--sb-paper-edge);
+  overflow: hidden;
+}
+.sb-polaroid__photo img,
+.sb-polaroid__photo svg {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+.sb-polaroid__caption {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 8px;
+  text-align: center;
+  font-family: var(--sb-font-hand);
+  font-size: 18px;
+  color: var(--sb-charcoal);
+  padding: 0 8px;
+  line-height: 1;
+}
+
+/* ---------- Washi tape (decorative strip on a polaroid) ---------- */
+.sb-washi {
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%) rotate(-6deg);
+  width: 80px;
+  height: 22px;
+  background: rgba(232, 155, 122, 0.55);
+  box-shadow: inset 0 0 0 0.5px rgba(232, 155, 122, 0.3);
+}
+.sb-washi--mustard { background: rgba(212, 165, 71, 0.5); }
+.sb-washi--blue    { background: rgba(90, 122, 154, 0.45); }
+.sb-washi::before,
+.sb-washi::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 6px;
+  background-image: repeating-linear-gradient(
+    45deg,
+    transparent 0 3px,
+    rgba(255, 255, 255, 0.45) 3px 6px
+  );
+}
+.sb-washi::before { left: 0; }
+.sb-washi::after { right: 0; }
+
+/* ---------- Pushpin (alternative to washi) ---------- */
+.sb-pushpin {
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 14px;
+  height: 14px;
+  background: radial-gradient(
+    circle at 35% 35%,
+    var(--sb-coral) 0%,
+    var(--sb-terracotta) 60%,
+    #7a3d1c 100%
+  );
+  border-radius: 50%;
+  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.3);
+}
+
+/* ---------- Annotation (handwritten callout + arrow squiggle) ---------- */
+.sb-annotation {
+  position: relative;
+  display: inline-block;
+  font-family: var(--sb-font-hand);
+  font-size: 17px;
+  line-height: 1.15;
+  color: var(--sb-annotation-colour, var(--sb-charcoal));
+  max-width: 160px;
+}
+.sb-annotation__text { display: block; }
+.sb-annotation__text em {
+  color: var(--sb-sepia);
+  font-style: normal;
+}
+.sb-annotation__arrow {
+  position: absolute;
+  width: 88px;
+  height: 54px;
+  pointer-events: none;
+  color: var(--sb-annotation-colour, var(--sb-charcoal));
+  top: -50px;
+  transform: scaleY(-1);
+}
+.sb-annotation--right .sb-annotation__arrow {
+  left: -8px;
+}
+.sb-annotation--left .sb-annotation__arrow {
+  right: -8px;
+}
+
+/* ---------- Sticky note ---------- */
+.sb-sticky-note {
+  position: relative;
+  background: var(--sb-sticky);
+  padding: 14px 16px 16px;
+  width: 170px;
+  font-family: var(--sb-font-hand);
+  font-size: 17px;
+  line-height: 1.25;
+  color: #5a432a;
+  transform: rotate(var(--sb-tilt, -2deg));
+  box-shadow: 0 6px 14px -8px rgba(0, 0, 0, 0.3);
+}
+[data-theme="dark"] .sb-sticky-note { color: #d8c8a4; }
+.sb-sticky-note::before {
+  content: "";
+  position: absolute;
+  top: -7px;
+  left: 50%;
+  width: 14px;
+  height: 14px;
+  background: radial-gradient(
+    circle at 35% 35%,
+    var(--sb-mustard) 0%,
+    var(--sb-sepia) 65%,
+    #3a2c14 100%
+  );
+  border-radius: 50%;
+  transform: translateX(-50%);
+  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.35);
+}
+
+/* ---------- Demo Detail page ---------- */
+.sb-detail {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 32px 22px 60px;
+}
+.sb-detail__head { margin-bottom: 8px; }
+.sb-detail__head .sb-eyebrow { margin-bottom: 12px; }
+.sb-detail__head .sb-display { margin-bottom: 0; }
+.sb-detail__lede {
+  font-family: var(--sb-font-display);
+  font-style: italic;
+  font-size: 19px;
+  color: var(--sb-charcoal-soft);
+  margin: 14px 0 0;
+  max-width: 540px;
+  line-height: 1.4;
+}
+
+/* Variant tabs — Roman numerals, editorial */
+.sb-variant-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid rgba(42, 42, 42, 0.18);
+  margin: 32px 0 28px;
+}
+[data-theme="dark"] .sb-variant-tabs { border-bottom-color: rgba(240, 232, 213, 0.18); }
+.sb-variant-tab {
+  background: none;
+  border: none;
+  padding: 12px 20px 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  font-family: var(--sb-font-display);
+  color: var(--sb-charcoal-soft);
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: color 0.15s, border-color 0.15s;
+}
+.sb-variant-tab:hover { color: var(--sb-charcoal); }
+.sb-variant-tab.is-active {
+  color: var(--sb-charcoal);
+  border-bottom-color: var(--sb-charcoal);
+}
+.sb-variant-tab__numeral {
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  opacity: 0.55;
+}
+.sb-variant-tab.is-active .sb-variant-tab__numeral { opacity: 1; }
+.sb-variant-tab__label { font-size: 14px; font-weight: 500; }
+
+/* Flat-lay */
+.sb-flatlay {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 56px 28px;
+  padding: 32px 0 56px;
+  align-items: start;
+  justify-items: center;
+}
+.sb-flatlay__slot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 28px;
+  width: 100%;
+  max-width: 220px;
+}
+.sb-flatlay__slot .sb-polaroid { width: 100%; }
+.sb-flatlay__sticky {
+  align-self: center;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+/* Rationale */
+.sb-detail__why {
+  padding: 32px 0;
+  border-top: 1px dashed rgba(139, 111, 71, 0.4);
+}
+.sb-detail__why .sb-display {
+  margin-bottom: 16px;
+  color: var(--sb-charcoal);
+}
+.sb-detail__why .sb-body { max-width: 540px; }
+
+/* Stockists — dark commerce panel */
+.sb-stockists {
+  background: var(--sb-ink);
+  color: #E8DFCD;
+  padding: 28px 24px 26px;
+  margin: 32px -22px 0;
+  border-top: 3px solid #2A2A2A;
+}
+.sb-stockists__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px;
+  border-bottom: 1px solid rgba(232, 223, 205, 0.18);
+  padding-bottom: 14px;
+  margin-bottom: 4px;
+}
+.sb-stockists__title {
+  font-family: var(--sb-font-display);
+  font-size: 22px;
+  font-weight: 500;
+  margin: 0;
+  color: #FAF5EC;
+  letter-spacing: 0.01em;
+}
+.sb-stockists__sub {
+  font-family: var(--sb-font-body);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--sb-ink-soft);
+}
+.sb-stockists__amz { color: var(--sb-coral); }
+.sb-stockists__list { list-style: none; margin: 0; padding: 0; }
+.sb-stockists__row {
+  display: grid;
+  grid-template-columns: 48px 1fr auto;
+  gap: 18px;
+  align-items: center;
+  padding: 14px 0;
+  border-bottom: 1px dashed rgba(232, 223, 205, 0.16);
+}
+.sb-stockists__row:last-child { border-bottom: 0; }
+.sb-stockists__thumb {
+  width: 44px;
+  height: 44px;
+  background: var(--sb-paper-card);
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: rotate(-3deg);
+  box-shadow: 0 2px 6px -2px rgba(0, 0, 0, 0.4);
+}
+.sb-stockists__thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.sb-stockists__name {
+  font-family: var(--sb-font-display);
+  font-size: 16px;
+  font-weight: 500;
+  color: #FAF5EC;
+}
+.sb-stockists__pos {
+  display: block;
+  font-family: var(--sb-font-body);
+  font-size: 10.5px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--sb-ink-soft);
+  font-weight: 500;
+  margin-top: 2px;
+}
+.sb-stockists__link {
+  font-family: var(--sb-font-body);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--sb-coral);
+  text-decoration: none;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: color 0.15s;
+}
+.sb-stockists__link:hover { color: #F0AC8F; }
+
+/* Sign-up CTA */
+.sb-detail__cta {
+  margin: 36px 0 0;
+  padding: 32px 22px 12px;
+  text-align: center;
+}
+.sb-detail__cta .sb-display { margin-bottom: 0; }
+.sb-detail__signup {
+  display: inline-block;
+  margin-top: 14px;
+  padding: 14px 28px;
+  background: var(--sb-charcoal);
+  color: var(--sb-paper);
+  font-family: var(--sb-font-display);
+  font-size: 15px;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+.sb-detail__signup:hover {
+  transform: translateY(-2px);
+  background: var(--sb-ink);
+}
+
+/* Affiliate disclosure */
+.sb-detail__disclosure {
+  margin: 22px 0 0;
+  font-family: var(--sb-font-body);
+  font-size: 11px;
+  color: var(--sb-charcoal-soft);
+  text-align: center;
+  font-style: italic;
+}
+
+@media (max-width: 640px) {
+  .sb-detail { padding: 22px 18px 48px; }
+  .sb-flatlay { grid-template-columns: 1fr 1fr; gap: 36px 14px; }
+  .sb-stockists { margin-left: -18px; margin-right: -18px; padding: 22px 18px; }
+  .sb-stockists__row { grid-template-columns: 40px 1fr; gap: 12px; }
+  .sb-stockists__link { grid-column: 2; justify-self: start; margin-top: 4px; }
+}
+
+/* ---------- Login screen (entry page) ----------
+   Login-specific. Hand-drawn underline inputs, two stacked CTAs:
+   the charcoal sign-in block and the outlined sample-wardrobe block.
+   Confined to .sb-login__* — remove the block to detach the styling
+   without touching primitives. */
+
+.sb-login {
+  max-width: 460px;
+  margin: 0 auto;
+  padding: 56px 28px 80px;
+}
+
+.sb-login__head { text-align: center; }
+
+.sb-login__title {
+  margin: 18px auto 0;
+}
+
+.sb-login__rule {
+  border: 0;
+  border-top: 1px dashed var(--sb-sepia);
+  margin: 28px 0;
+}
+
+.sb-login__lede {
+  font-family: var(--sb-font-display);
+  font-style: italic;
+  font-size: 18px;
+  color: var(--sb-charcoal-soft);
+  margin: 0 0 36px;
+  line-height: 1.45;
+  text-align: center;
+}
+
+.sb-login__form {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.sb-login__field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sb-login__label {
+  font-family: var(--sb-font-hand);
+  font-size: 18px;
+  color: var(--sb-sepia);
+  line-height: 1;
+}
+
+.sb-login__input {
+  background: transparent;
+  border: 0;
+  border-bottom: 1.4px solid var(--sb-charcoal);
+  padding: 8px 2px;
+  font-family: var(--sb-font-body);
+  font-size: 16px;
+  color: var(--sb-charcoal);
+  outline: none;
+  transition: border-color 0.18s ease;
+}
+.sb-login__input:focus { border-bottom-color: var(--sb-terracotta); }
+
+.sb-login__error {
+  font-family: var(--sb-font-body);
+  font-size: 13px;
+  color: #b3361f;
+  margin: 0;
+}
+
+.sb-login__submit {
+  background: var(--sb-charcoal);
+  color: var(--sb-paper);
+  padding: 14px 28px;
+  font-family: var(--sb-font-display);
+  font-size: 15px;
+  letter-spacing: 0.04em;
+  border: 0;
+  border-radius: 0;
+  cursor: pointer;
+  align-self: flex-start;
+  transition: transform 0.18s ease, background 0.18s ease;
+}
+.sb-login__submit:hover {
+  transform: translateY(-2px);
+  background: var(--sb-ink);
+}
+.sb-login__submit:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.sb-login__divider {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 36px 0 24px;
+  font-family: var(--sb-font-hand);
+  font-size: 16px;
+  color: var(--sb-sepia);
+}
+.sb-login__divider::before,
+.sb-login__divider::after {
+  content: "";
+  flex: 1;
+  border-top: 1px dashed var(--sb-sepia-soft);
+}
+
+.sb-login__demo {
+  display: block;
+  text-align: center;
+  background: transparent;
+  border: 1.4px solid var(--sb-charcoal);
+  padding: 16px 28px;
+  font-family: var(--sb-font-display);
+  font-size: 16px;
+  color: var(--sb-charcoal);
+  text-decoration: none;
+  letter-spacing: 0.02em;
+  transition: background 0.18s ease, color 0.18s ease;
+}
+.sb-login__demo:hover {
+  background: var(--sb-charcoal);
+  color: var(--sb-paper);
+}
+
+.sb-login__demo-sub {
+  text-align: center;
+  font-family: var(--sb-font-body);
+  font-size: 12px;
+  color: var(--sb-charcoal-soft);
+  margin: 8px 0 0;
+}
+
+.sb-login__toggle {
+  display: block;
+  text-align: center;
+  margin: 32px 0 0;
+  font-family: var(--sb-font-hand);
+  font-size: 17px;
+  color: var(--sb-sepia);
+}
+.sb-login__toggle button {
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  text-decoration: underline wavy;
+  text-underline-offset: 4px;
+  margin-left: 4px;
+}
+.sb-login__toggle button:hover { color: var(--sb-charcoal); }
+
+
+/* ---------- Polaroid placeholder + buy badge ----------
+   Used by authed OutfitDetail when an item has no Cloudinary photo
+   (affiliate gap items). Dim the stand-in SVG so it doesn't read as
+   a real garment, and pin a small Caveat "to buy" tag in the corner. */
+
+.sb-polaroid--placeholder .sb-polaroid__photo img {
+  opacity: 0.6;
+  filter: grayscale(0.18);
+}
+
+.sb-polaroid__badge {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  z-index: 2;
+  font-family: var(--sb-font-hand);
+  font-size: 14px;
+  line-height: 1.1;
+  color: var(--sb-sepia);
+  background: rgba(255, 254, 248, 0.92);
+  padding: 2px 9px;
+  border: 1px solid var(--sb-sepia-soft);
+  letter-spacing: 0.02em;
+  pointer-events: none;
+  transform: rotate(-3deg);
+}

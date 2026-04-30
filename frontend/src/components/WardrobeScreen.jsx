@@ -1,16 +1,41 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth.jsx";
 import { api } from "../services/api";
+import { SketchbookPage, Masthead, Polaroid } from "./sketchbook";
+import {
+  CATEGORIES, SEASONS, FORMALITIES,
+  TextField, SelectField,
+} from "./EditableField.jsx";
 
-const CATEGORIES = [
-  { key: null, label: "All" },
-  { key: "top", label: "Tops" },
-  { key: "bottom", label: "Bottoms" },
-  { key: "outerwear", label: "Outerwear" },
-  { key: "footwear", label: "Footwear" },
-  { key: "accessory", label: "Accessories" },
+
+const TILTS = [-3, 2.4, -1.6, 1.8, -2.2, 2.6];
+const WASHIS = ["coral", "mustard", null, "blue", null, "coral"];
+const tiltFor = (i) => TILTS[i % TILTS.length];
+const decorationFor = (i) => {
+  const w = WASHIS[i % WASHIS.length];
+  return w ? { washi: w, pin: false } : { washi: null, pin: true };
+};
+
+
+const FILTERS = [
+  { key: null,         label: "all" },
+  { key: "top",        label: "tops" },
+  { key: "bottom",     label: "bottoms" },
+  { key: "outerwear",  label: "outer" },
+  { key: "footwear",   label: "shoes" },
+  { key: "accessory",  label: "acc" },
 ];
+
+
+function captionFor(g) {
+  const sub = g.subcategory || g.category;
+  if (g.colour && sub) return `${g.colour} ${sub}`.toLowerCase();
+  if (sub) return sub.toLowerCase();
+  if (g.colour) return g.colour.toLowerCase();
+  return undefined;
+}
+
 
 export default function WardrobeScreen() {
   const navigate = useNavigate();
@@ -21,210 +46,309 @@ export default function WardrobeScreen() {
   const [selected, setSelected] = useState(null);
 
   useEffect(() => {
-    const load = async () => {
+    let cancelled = false;
+    (async () => {
       const token = getToken();
       try {
         const data = await api.get("/api/wardrobe/", token);
-        setGarments(data);
+        if (!cancelled) setGarments(data);
       } catch (e) {
         console.error("Failed to load wardrobe:", e);
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
-    };
-    load();
+    })();
+    return () => { cancelled = true; };
   }, []);
 
   const handleDelete = async (id) => {
     const token = getToken();
     try {
       await api.delete(`/api/wardrobe/${id}`, token);
-      setGarments(prev => prev.filter(g => g.id !== id));
+      setGarments((prev) => prev.filter((g) => g.id !== id));
       setSelected(null);
     } catch (e) {
       console.error("Failed to delete:", e);
     }
   };
 
+  const updateGarment = async (id, field, value) => {
+    const token = getToken();
+    // Optimistic local update so the filter chip view reflects immediately.
+    setSelected((cur) => (cur && cur.id === id ? { ...cur, [field]: value } : cur));
+    setGarments((prev) =>
+      prev.map((g) => (g.id === id ? { ...g, [field]: value } : g)),
+    );
+    try {
+      const updated = await api.put(`/api/wardrobe/${id}`, { [field]: value }, token);
+      setSelected((cur) => (cur && cur.id === id ? updated : cur));
+      setGarments((prev) => prev.map((g) => (g.id === id ? updated : g)));
+    } catch (e) {
+      console.error("Failed to update garment:", e);
+    }
+  };
+
   const filtered = filter
-    ? garments.filter(g => g.category === filter)
+    ? garments.filter((g) => g.category === filter)
     : garments;
 
   return (
-    <div style={{ minHeight: "100vh", padding: "0 22px 40px" }}>
-      <div style={{
-        position: "fixed", inset: 0, pointerEvents: "none",
-        background: "radial-gradient(ellipse 500px 350px at 15% 15%, rgba(196,149,106,0.06), transparent)",
-      }} />
+    <SketchbookPage>
+      <Masthead
+        title="THE WARDROBE"
+        eyebrow={`${garments.length} ${garments.length === 1 ? "item" : "items"}`}
+        right={<Link to="/">← Home</Link>}
+      />
 
-      <div style={{ position: "relative", zIndex: 1 }}>
-        {/* Header */}
-        <div style={{ padding: "22px 0 18px" }}>
-          <button onClick={() => navigate("/")} style={{
-            background: "none", border: "none", color: "var(--text-muted)",
-            cursor: "pointer", fontSize: 13.5, padding: "4px 0", marginBottom: 14,
-            display: "flex", alignItems: "center", gap: 6, fontFamily: "var(--font-body)",
-          }}>← Back</button>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <div>
-              <h2 style={{ fontSize: 22, fontWeight: 700, margin: 0 }}>Your Wardrobe</h2>
-              <p style={{ fontSize: 12.5, color: "var(--text-muted)", margin: "3px 0 0", fontFamily: "var(--font-mono)" }}>
-                {garments.length} {garments.length === 1 ? "item" : "items"}
-              </p>
-            </div>
-            <button onClick={() => navigate("/scan")} style={{
-              background: "var(--accent)", border: "none",
-              color: "#fff", borderRadius: 10, padding: "8px 16px",
-              fontSize: 12, fontWeight: 600, cursor: "pointer",
-            }}>+ Scan</button>
-          </div>
-        </div>
+      <main className="sb-detail">
+        <header className="sb-detail__head">
+          <div className="sb-eyebrow">YOUR CATALOGUE</div>
+          <h1 className="sb-display sb-display-xl">All pieces.</h1>
+        </header>
 
-        {/* Category filter */}
-        <div style={{ display: "flex", gap: 7, marginBottom: 20, flexWrap: "wrap" }}>
-          {CATEGORIES.map(c => (
-            <button key={c.label} onClick={() => setFilter(c.key)} style={{
-              padding: "5px 13px", borderRadius: 18,
-              background: filter === c.key ? "rgba(196,149,106,0.15)" : "rgba(255,255,255,0.025)",
-              border: `1px solid ${filter === c.key ? "rgba(196,149,106,0.35)" : "rgba(255,255,255,0.05)"}`,
-              color: filter === c.key ? "var(--accent-light)" : "var(--text-muted)",
-              fontSize: 12, fontWeight: 500, cursor: "pointer",
-            }}>{c.label}</button>
-          ))}
-        </div>
-
-        {/* Garment grid */}
-        {loading ? (
-          <p style={{ color: "var(--text-muted)", fontSize: 14 }}>Loading...</p>
-        ) : filtered.length === 0 ? (
-          <div style={{ textAlign: "center", padding: "40px 0" }}>
-            <p style={{ color: "var(--text-muted)", fontSize: 14 }}>
-              {filter ? "No items in this category" : "Your wardrobe is empty"}
-            </p>
-            <button onClick={() => navigate("/scan")} style={{
-              marginTop: 12, background: "var(--accent)", border: "none",
-              color: "#fff", borderRadius: 10, padding: "10px 20px",
-              fontSize: 13, fontWeight: 600, cursor: "pointer",
-            }}>Scan your first item</button>
-          </div>
-        ) : (
-          <div style={{
-            display: "grid", gridTemplateColumns: "repeat(3, 1fr)",
-            gap: 10,
-          }}>
-            {filtered.map((g, i) => (
-              <div
-                key={g.id}
-                onClick={() => setSelected(selected?.id === g.id ? null : g)}
+        <nav style={{
+          display: "flex", flexWrap: "wrap", gap: 10,
+          margin: "28px 0 8px",
+        }}>
+          {FILTERS.map((f) => {
+            const active = filter === f.key;
+            return (
+              <button
+                key={f.label}
+                type="button"
+                onClick={() => setFilter(f.key)}
                 style={{
-                  aspectRatio: "1", borderRadius: 14,
-                  backgroundImage: `url(${g.image_url})`,
-                  backgroundSize: "cover", backgroundPosition: "center",
-                  border: selected?.id === g.id
-                    ? "2px solid var(--accent)"
-                    : "1px solid rgba(255,255,255,0.08)",
-                  cursor: "pointer",
-                  transition: "all 0.2s",
-                  animation: `fadeSlideIn 0.3s ease-out ${i * 0.03}s both`,
-                  position: "relative", overflow: "hidden",
+                  padding: "8px 16px",
+                  border: "1.4px solid var(--sb-charcoal)",
+                  background: active ? "var(--sb-charcoal)" : "transparent",
+                  color: active ? "var(--sb-paper)" : "var(--sb-charcoal)",
+                  fontFamily: "var(--sb-font-display)", fontSize: 14,
+                  letterSpacing: "0.02em",
+                  cursor: "pointer", borderRadius: 0,
+                  transition: "background 0.15s ease, color 0.15s ease",
+                }}
+                onMouseEnter={(e) => {
+                  if (active) return;
+                  e.currentTarget.style.background = "rgba(42,42,42,0.06)";
+                }}
+                onMouseLeave={(e) => {
+                  if (active) return;
+                  e.currentTarget.style.background = "transparent";
                 }}
               >
-                <div style={{
-                  position: "absolute", bottom: 0, left: 0, right: 0,
-                  padding: "20px 8px 8px",
-                  background: "linear-gradient(transparent, rgba(0,0,0,0.7))",
-                }}>
-                  <p style={{ fontSize: 10.5, color: "#fff", margin: 0, fontWeight: 500 }}>
-                    {g.colour} {g.subcategory || g.category}
-                  </p>
-                </div>
+                {f.label}
+              </button>
+            );
+          })}
+        </nav>
+
+        {loading ? (
+          <p className="sb-body" style={{ padding: 60, textAlign: "center" }}>Loading…</p>
+        ) : filtered.length === 0 ? (
+          <EmptyState filter={filter} onScan={() => navigate("/scan")} />
+        ) : (
+          <section className="sb-flatlay" style={{ paddingTop: 36 }}>
+            {filtered.map((g, i) => (
+              <div key={g.id} className="sb-flatlay__slot">
+                <button
+                  type="button"
+                  onClick={() => setSelected(g)}
+                  style={{
+                    background: "none", border: 0, padding: 0,
+                    width: "100%", maxWidth: 200, cursor: "pointer",
+                    fontFamily: "inherit", color: "inherit",
+                  }}
+                  aria-label={`Open ${g.subcategory || g.category}`}
+                >
+                  <Polaroid tilt={tiltFor(i)} caption={captionFor(g)} {...decorationFor(i)}>
+                    <img src={g.image_url} alt={captionFor(g) || g.category || ""} />
+                  </Polaroid>
+                </button>
               </div>
             ))}
-          </div>
+          </section>
         )}
+      </main>
 
-        {/* Selected garment modal */}
-{selected && (
-  <div
-    onClick={() => setSelected(null)}
-    style={{
-      position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)",
-      display: "flex", alignItems: "center", justifyContent: "center",
-      zIndex: 10, padding: 24,
-      animation: "fadeIn 0.2s ease-out",
-    }}
-  >
+      <Link
+        to="/scan"
+        aria-label="Add a piece"
+        style={{
+          position: "fixed", bottom: 24, right: 24, zIndex: 30,
+          display: "inline-flex", alignItems: "center", justifyContent: "center",
+          width: 56, height: 56, borderRadius: "50%",
+          background: "var(--sb-charcoal)", color: "var(--sb-paper)",
+          fontFamily: "var(--sb-font-display)", fontSize: 26, lineHeight: 1,
+          textDecoration: "none",
+          boxShadow: "0 12px 24px -10px rgba(42,42,42,0.45)",
+          transition: "transform 0.18s ease, background 0.18s ease",
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = "translateY(-2px)";
+          e.currentTarget.style.background = "var(--sb-ink)";
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = "none";
+          e.currentTarget.style.background = "var(--sb-charcoal)";
+        }}
+      >+</Link>
+
+      {selected && (
+        <DetailModal
+          garment={selected}
+          onClose={() => setSelected(null)}
+          onDelete={() => handleDelete(selected.id)}
+          onUpdateField={(field, value) => updateGarment(selected.id, field, value)}
+        />
+      )}
+    </SketchbookPage>
+  );
+}
+
+
+function EmptyState({ filter, onScan }) {
+  const message = filter
+    ? "Nothing in this category yet."
+    : "No items yet. Photograph your first piece.";
+  return (
+    <section style={{
+      margin: "32px 0 0", padding: "48px 28px",
+      background: "var(--sb-paper-card)",
+      border: "1px dashed var(--sb-sepia-soft)",
+      textAlign: "center",
+    }}>
+      <p className="sb-display sb-display-md" style={{ fontStyle: "italic", margin: 0 }}>
+        {message}
+      </p>
+      <button
+        type="button"
+        onClick={onScan}
+        style={{
+          marginTop: 22,
+          background: "var(--sb-charcoal)", color: "var(--sb-paper)",
+          padding: "14px 28px", border: 0, borderRadius: 0,
+          fontFamily: "var(--sb-font-display)", fontSize: 15,
+          letterSpacing: "0.04em", cursor: "pointer",
+        }}
+      >
+        Photograph a piece →
+      </button>
+    </section>
+  );
+}
+
+
+function DetailModal({ garment, onClose, onDelete, onUpdateField }) {
+  const heading = captionFor(garment) || "Piece";
+  return (
     <div
-      onClick={e => e.stopPropagation()}
+      onClick={onClose}
       style={{
-        width: "100%", maxWidth: 340, borderRadius: 20,
-        background: "var(--surface)", border: "1px solid rgba(255,255,255,0.08)",
-        overflow: "hidden",
-        animation: "slideUp 0.3s ease-out",
+        position: "fixed", inset: 0, zIndex: 40,
+        background: "rgba(31, 30, 26, 0.65)",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        padding: 24, overflowY: "auto",
       }}
     >
-      <div style={{
-        width: "100%", height: 260,
-        backgroundImage: `url(${selected.image_url})`,
-        backgroundSize: "cover", backgroundPosition: "center",
-      }} />
-      <div style={{ padding: "18px 20px" }}>
-        <h3 style={{ fontSize: 16, fontWeight: 600, margin: "0 0 4px" }}>
-          {selected.colour} {selected.subcategory || selected.category}
-        </h3>
-        {selected.ai_description && (
-          <p style={{ fontSize: 12.5, color: "var(--text-muted)", margin: "0 0 14px", lineHeight: 1.5 }}>
-            {selected.ai_description}
-          </p>
-        )}
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 16 }}>
-          {selected.material && (
-            <span style={{
-              padding: "4px 10px", borderRadius: 16, fontSize: 11,
-              background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)",
-              color: "var(--text-muted)",
-            }}>{selected.material}</span>
-          )}
-          {selected.pattern && (
-            <span style={{
-              padding: "4px 10px", borderRadius: 16, fontSize: 11,
-              background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)",
-              color: "var(--text-muted)",
-            }}>{selected.pattern}</span>
-          )}
-          {selected.season && (
-            <span style={{
-              padding: "4px 10px", borderRadius: 16, fontSize: 11,
-              background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)",
-              color: "var(--text-muted)",
-            }}>{selected.season}</span>
-          )}
-          {selected.formality && (
-            <span style={{
-              padding: "4px 10px", borderRadius: 16, fontSize: 11,
-              background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)",
-              color: "var(--text-muted)",
-            }}>Formality {selected.formality}/5</span>
-          )}
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          width: "100%", maxWidth: 420,
+          maxHeight: "90vh", overflowY: "auto",
+          background: "var(--sb-paper)",
+          border: "1px solid var(--sb-paper-edge)",
+          boxShadow: "0 18px 40px -16px rgba(0,0,0,0.45)",
+          padding: "26px 26px 22px",
+        }}
+      >
+        <div style={{ display: "flex", justifyContent: "center" }}>
+          <Polaroid tilt={-2.2} caption={captionFor(garment)} pin>
+            <img src={garment.image_url} alt={heading} />
+          </Polaroid>
         </div>
-        <div style={{ display: "flex", gap: 10 }}>
-          <button onClick={() => setSelected(null)} style={{
-            flex: 1, padding: "11px 0", borderRadius: 10,
-            background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)",
-            color: "var(--text-primary)", fontSize: 13, fontWeight: 500, cursor: "pointer",
-          }}>Close</button>
-          <button onClick={() => handleDelete(selected.id)} style={{
-            flex: 1, padding: "11px 0", borderRadius: 10,
-            background: "rgba(226,75,74,0.12)", border: "1px solid rgba(226,75,74,0.25)",
-            color: "#e24b4a", fontSize: 13, fontWeight: 500, cursor: "pointer",
-          }}>Delete item</button>
+
+        <h2 className="sb-display sb-display-md" style={{
+          marginTop: 22, textAlign: "center", fontStyle: "normal",
+        }}>{heading}</h2>
+
+        {garment.ai_description && (
+          <p className="sb-body" style={{
+            margin: "10px 0 0", color: "var(--sb-charcoal-soft)",
+            textAlign: "center", lineHeight: 1.55, fontStyle: "italic",
+          }}>{garment.ai_description}</p>
+        )}
+
+        <p className="sb-eyebrow" style={{ marginTop: 24, marginBottom: 6 }}>
+          Tag this piece
+        </p>
+
+        <SelectField
+          label="category"
+          value={garment.category || ""}
+          options={CATEGORIES}
+          onSave={(v) => onUpdateField("category", v)}
+        />
+        <TextField
+          label="subcategory"
+          value={garment.subcategory || ""}
+          onSave={(v) => onUpdateField("subcategory", v)}
+        />
+        <TextField
+          label="colour"
+          value={garment.colour || ""}
+          onSave={(v) => onUpdateField("colour", v)}
+        />
+        <TextField
+          label="material"
+          value={garment.material || ""}
+          onSave={(v) => onUpdateField("material", v)}
+        />
+        <TextField
+          label="pattern"
+          value={garment.pattern || ""}
+          onSave={(v) => onUpdateField("pattern", v)}
+        />
+        <SelectField
+          label="season"
+          value={garment.season || ""}
+          options={SEASONS}
+          onSave={(v) => onUpdateField("season", v || null)}
+        />
+        <SelectField
+          label="formality"
+          value={garment.formality != null ? String(garment.formality) : ""}
+          options={FORMALITIES}
+          onSave={(v) => onUpdateField("formality", v === "" ? null : Number(v))}
+        />
+
+        <div style={{ display: "flex", gap: 12, marginTop: 22 }}>
+          <button
+            type="button"
+            onClick={onClose}
+            style={{
+              flex: 1, padding: "12px 0",
+              background: "transparent",
+              border: "1.4px solid var(--sb-charcoal)",
+              fontFamily: "var(--sb-font-display)", fontSize: 14,
+              letterSpacing: "0.02em",
+              color: "var(--sb-charcoal)",
+              cursor: "pointer", borderRadius: 0,
+            }}
+          >Close</button>
+          <button
+            type="button"
+            onClick={onDelete}
+            style={{
+              flex: 1, padding: "12px 0",
+              background: "transparent",
+              border: "1.4px dashed #b3361f",
+              fontFamily: "var(--sb-font-hand)", fontSize: 17,
+              color: "#b3361f",
+              cursor: "pointer", borderRadius: 0,
+            }}
+          >Remove</button>
         </div>
       </div>
-    </div>
-  </div>
-)}
-
-</div>
     </div>
   );
 }

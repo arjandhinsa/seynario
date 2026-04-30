@@ -1,28 +1,33 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth.jsx";
 import { api } from "../services/api";
+import { SketchbookPage, Masthead } from "./sketchbook";
+
+
+const CATEGORIES = ["professional", "social", "formal", "casual"];
+
 
 export default function HomeScreen() {
   const navigate = useNavigate();
-  const { getToken, logout } = useAuth();
+  const { user, getToken } = useAuth();
   const [garments, setGarments] = useState([]);
   const [scenarios, setScenarios] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [savedOutfits, setSavedOutfits] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const load = async () => {
       const token = getToken();
       try {
         const [g, s, o] = await Promise.all([
-        api.get("/api/wardrobe/", token),
-        api.get("/api/scenarios/", token),
-        api.get("/api/outfits/?saved=true", token),
-    ]);
-    setGarments(g);
-    setScenarios(s);
-    setSavedOutfits(o);
+          api.get("/api/wardrobe/", token),
+          api.get("/api/scenarios/", token),
+          api.get("/api/outfits/?saved=true", token),
+        ]);
+        setGarments(g);
+        setScenarios(s);
+        setSavedOutfits(o);
       } catch (e) {
         console.error("Failed to load:", e);
       } finally {
@@ -32,187 +37,284 @@ export default function HomeScreen() {
     load();
   }, []);
 
-  const categories = ["professional", "social", "formal", "casual"];
+  const scenariosById = useMemo(
+    () => Object.fromEntries(scenarios.map(s => [s.id, s])),
+    [scenarios],
+  );
+
+  const recentOutfit = savedOutfits[0];
+  const recentScenario = recentOutfit ? scenariosById[recentOutfit.scenario_id] : null;
+  const briefLabel = isEvening() ? "TONIGHT'S BRIEF" : "TODAY'S BRIEF";
 
   return (
-    <div style={{ minHeight: "100vh", padding: "0 22px 40px" }}>
-      {/* Ambient background */}
-      <div style={{
-        position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0,
-        background: "radial-gradient(ellipse 500px 350px at 15% 15%, rgba(196,149,106,0.06), transparent), radial-gradient(ellipse 400px 400px at 85% 80%, rgba(160,120,90,0.04), transparent)",
-      }} />
+    <SketchbookPage>
+      <Masthead
+        title="SEYNARIO"
+        eyebrow={formatToday()}
+        right={<Avatar user={user} />}
+      />
 
-      <div style={{ position: "relative", zIndex: 1 }}>
-        {/* Header */}
-        <div style={{ padding: "36px 0 28px", animation: "fadeIn 0.7s ease-out" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-            <div style={{ fontSize: 10, fontFamily: "var(--font-mono)", color: "var(--text-muted)", letterSpacing: 4, textTransform: "uppercase" }}>SEYN</div>
-            <div style={{ display: "flex", gap: 8 }}>
-              <button onClick={() => navigate("/profile")} style={{
-                background: "none", border: "1px solid rgba(255,255,255,0.07)",
-                color: "var(--text-muted)", borderRadius: 8, padding: "5px 12px",
-                fontSize: 11, cursor: "pointer",
-              }}>Profile</button>
-              <button onClick={logout} style={{
-                background: "none", border: "1px solid rgba(255,255,255,0.07)",
-                color: "var(--text-muted)", borderRadius: 8, padding: "5px 12px",
-                fontSize: 11, cursor: "pointer",
-              }}>Log out</button>
-            </div>
-          </div>
-          <h1 style={{ fontSize: 30, fontWeight: 700, letterSpacing: "-0.03em", marginBottom: 6, color: "var(--accent-light)" }}>Seynario</h1>
-          <p style={{ fontSize: 13, color: "var(--text-muted)", fontFamily: "var(--font-mono)", letterSpacing: 1.5 }}>Dress for the scenario</p>
-        </div>
-
-        {/* Wardrobe section */}
-        <div style={{
-          background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.05)",
-          borderRadius: 16, padding: "18px 20px", marginBottom: 24,
-          animation: "slideUp 0.5s ease-out 0.15s both",
-        }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-            <div>
-              <h2 style={{ fontSize: 16, fontWeight: 600, margin: 0 }}>Your Wardrobe</h2>
-              <p style={{ fontSize: 12, color: "var(--text-muted)", margin: "3px 0 0", fontFamily: "var(--font-mono)" }}>
-                {garments.length} {garments.length === 1 ? "item" : "items"} scanned
-              </p>
-            </div>
-            <div style={{ display: "flex", gap: 8 }}>
-              {garments.length > 0 && (
-                <button onClick={() => navigate("/wardrobe")} style={{
-                  background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)",
-                  color: "var(--text-muted)", borderRadius: 10, padding: "7px 14px",
-                  fontSize: 12, cursor: "pointer",
-                }}>View all</button>
-              )}
-              <button onClick={() => navigate("/scan")} style={{
-                background: "var(--accent)", border: "none",
-                color: "#fff", borderRadius: 10, padding: "7px 16px",
-                fontSize: 12, fontWeight: 600, cursor: "pointer",
-              }}>+ Scan item</button>
-            </div>
-          </div>
-
-          {garments.length === 0 ? (
-            <p style={{ fontSize: 13, color: "var(--text-muted)", lineHeight: 1.6 }}>
-              Start by scanning a few items from your wardrobe and Seynario will identify them.
-            </p>
-          ) : (
-            <div style={{ display: "flex", gap: 10, overflowX: "auto", paddingBottom: 4 }}>
-              {garments.slice(0, 6).map(g => (
-                <div key={g.id} style={{
-                  width: 72, height: 72, borderRadius: 10, flexShrink: 0,
-                  backgroundImage: `url(${g.image_url})`,
-                  backgroundSize: "cover", backgroundPosition: "center",
-                  border: "1px solid rgba(255,255,255,0.08)",
-                }} />
-              ))}
-              {garments.length > 6 && (
-                <div onClick={() => navigate("/wardrobe")} style={{
-                  width: 72, height: 72, borderRadius: 10, flexShrink: 0,
-                  background: "rgba(255,255,255,0.04)",
-                  border: "1px solid rgba(255,255,255,0.08)",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  fontSize: 12, color: "var(--text-muted)", cursor: "pointer",
-                }}>+{garments.length - 6}</div>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* Saved outfits */}
-        {savedOutfits.length > 0 && (
-        <div style={{
-            marginBottom: 24,
-            animation: "slideUp 0.5s ease-out 0.25s both",
-        }}>
-            <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: 14 }}>Saved Outfits</h2>
-            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            {savedOutfits.map((o, i) => {
-                const scenario = scenarios.find(s => s.id === o.scenario_id);
-                return (
-                <div
-                    key={o.id}
-                    onClick={() => navigate(`/outfit/${o.id}`)}
-                    style={{
-                    padding: "16px 18px", borderRadius: 14,
-                    background: "rgba(255,255,255,0.02)",
-                    border: "1px solid rgba(255,255,255,0.05)",
-                    cursor: "pointer",
-                    transition: "all 0.3s",
-                    animation: `fadeSlideIn 0.3s ease-out ${i * 0.05}s both`,
-                    }}
-                >
-                    <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                    <span style={{ fontSize: 22 }}>{scenario?.icon || "👔"}</span>
-                    <div style={{ flex: 1 }}>
-                        <h4 style={{ margin: 0, fontSize: 14.5, fontWeight: 600 }}>{o.name || "Saved outfit"}</h4>
-                        <p style={{ margin: "3px 0 0", fontSize: 12, color: "var(--text-muted)" }}>
-                        {scenario?.name || "Custom outfit"} · {o.item_count} items
-                        </p>
-                    </div>
-                    <span style={{ color: "var(--text-muted)", fontSize: 16 }}>→</span>
-                    </div>
-                </div>
-                );
-            })}
-            </div>
-        </div>
+      <main className="sb-detail">
+        {recentScenario && (
+          <header className="sb-detail__head">
+            <div className="sb-eyebrow">{briefLabel}</div>
+            <h1 className="sb-display sb-display-xl">{recentScenario.name}</h1>
+            {recentScenario.description && (
+              <p className="sb-detail__lede">{recentScenario.description}</p>
+            )}
+          </header>
         )}
 
-        {/* Scenarios */}
-        <h2 style={{
-          fontSize: 16, fontWeight: 600, marginBottom: 14,
-          animation: "slideUp 0.5s ease-out 0.3s both",
-        }}>What's the scenario?</h2>
-
-        {loading ? (
-          <p style={{ color: "var(--text-muted)", fontSize: 14 }}>Loading...</p>
-        ) : (
-          categories.map((cat, ci) => {
-            const filtered = scenarios.filter(s => s.category === cat);
-            if (filtered.length === 0) return null;
-            return (
-              <div key={cat} style={{ marginBottom: 22, animation: `slideUp 0.5s ease-out ${0.35 + ci * 0.08}s both` }}>
-                <h3 style={{
-                  fontSize: 11, fontFamily: "var(--font-mono)", color: "var(--accent)",
-                  letterSpacing: 2, textTransform: "uppercase", marginBottom: 10,
-                }}>{cat}</h3>
-                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                  {filtered.map((s, i) => (
-                    <div
-                      key={s.id}
-                      onClick={() => {
-                        if (garments.length === 0) {
-                          alert("Scan some wardrobe items first!");
-                          return;
-                        }
-                        navigate(`/scenario/${s.id}`);
-                      }}
-                      style={{
-                        padding: "16px 18px", borderRadius: 14,
-                        background: "rgba(255,255,255,0.02)",
-                        border: "1px solid rgba(255,255,255,0.05)",
-                        cursor: "pointer",
-                        transition: "all 0.3s cubic-bezier(0.4,0,0.2,1)",
-                      }}
-                    >
-                      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                        <span style={{ fontSize: 22 }}>{s.icon}</span>
-                        <div style={{ flex: 1 }}>
-                          <h4 style={{ margin: 0, fontSize: 14.5, fontWeight: 600 }}>{s.name}</h4>
-                          <p style={{ margin: "4px 0 0", fontSize: 12.5, color: "var(--text-muted)", lineHeight: 1.4 }}>{s.description}</p>
-                        </div>
-                        <span style={{ color: "var(--text-muted)", fontSize: 16 }}>→</span>
-                      </div>
-                    </div>
-                  ))}
+        {recentOutfit && (
+          <section id="saved-looks" style={{ padding: "28px 0 8px", scrollMarginTop: 24 }}>
+            <Link
+              to={`/outfit/${recentOutfit.id}`}
+              style={{
+                display: "flex", alignItems: "center", gap: 16,
+                padding: "18px 20px",
+                background: "var(--sb-paper-card)",
+                border: "1px solid var(--sb-paper-edge)",
+                color: "var(--sb-charcoal)", textDecoration: "none",
+                boxShadow: "var(--sb-shadow-card)",
+              }}
+            >
+              <span style={{ fontSize: 28, lineHeight: 1 }}>
+                {recentScenario?.icon || "·"}
+              </span>
+              <div style={{ flex: 1 }}>
+                <div style={{
+                  fontFamily: "var(--sb-font-display)", fontSize: 18, fontWeight: 500,
+                  letterSpacing: "-0.01em",
+                }}>
+                  {recentOutfit.name || "Saved look"}
+                </div>
+                <div style={{
+                  fontFamily: "var(--sb-font-body)", fontSize: 12,
+                  color: "var(--sb-charcoal-soft)", marginTop: 4,
+                  letterSpacing: "0.04em",
+                }}>
+                  {formatDate(recentOutfit.created_at)} · {recentOutfit.item_count} {recentOutfit.item_count === 1 ? "piece" : "pieces"}
                 </div>
               </div>
-            );
-          })
+              <span style={{
+                fontFamily: "var(--sb-font-body)", fontSize: 11,
+                letterSpacing: "0.18em", textTransform: "uppercase",
+                color: "var(--sb-sepia)",
+              }}>Open →</span>
+            </Link>
+          </section>
         )}
-      </div>
-    </div>
+
+        {savedOutfits.length > 1 && (
+          <section className="sb-detail__why" style={{ paddingTop: 32 }}>
+            <h2 className="sb-display sb-display-md">Recent briefs</h2>
+            <ul style={{ listStyle: "none", padding: 0, margin: "12px 0 0" }}>
+              {savedOutfits.slice(1, 6).map((o) => {
+                const sc = scenariosById[o.scenario_id];
+                return (
+                  <li key={o.id}>
+                    <Link
+                      to={`/outfit/${o.id}`}
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns: "auto 1fr auto",
+                        gap: 16, alignItems: "baseline",
+                        padding: "14px 0",
+                        borderBottom: "1px dashed rgba(139, 111, 71, 0.32)",
+                        color: "var(--sb-charcoal)",
+                        textDecoration: "none",
+                      }}
+                    >
+                      <span style={{
+                        fontFamily: "var(--sb-font-body)", fontSize: 11,
+                        letterSpacing: "0.18em", textTransform: "uppercase",
+                        color: "var(--sb-sepia)", minWidth: 88,
+                      }}>{formatDate(o.created_at)}</span>
+                      <span style={{
+                        fontFamily: "var(--sb-font-display)", fontSize: 17,
+                        letterSpacing: "-0.01em",
+                      }}>{sc?.name || o.name || "Saved look"}</span>
+                      <span style={{
+                        fontFamily: "var(--sb-font-body)", fontSize: 12,
+                        color: "var(--sb-charcoal-soft)",
+                      }}>{o.item_count} pcs</span>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+        )}
+
+        <section id="compose" className="sb-detail__head" style={{ paddingTop: recentScenario ? 36 : 0 }}>
+          <h2 className="sb-display sb-display-xl">What are you dressing for?</h2>
+          <p className="sb-detail__lede">
+            Pick an occasion. We'll dress you from your wardrobe.
+            <br />
+            Saved looks stay here.
+          </p>
+
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 20, alignItems: "center", marginTop: 22 }}>
+            {savedOutfits.length > 0 && (
+              <a
+                href="#saved-looks"
+                onClick={(e) => {
+                  e.preventDefault();
+                  document.getElementById("saved-looks")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                }}
+                style={{
+                  display: "inline-block",
+                  padding: "16px 28px",
+                  border: "1.4px solid var(--sb-charcoal)",
+                  background: "transparent",
+                  fontFamily: "var(--sb-font-display)",
+                  fontSize: 16, letterSpacing: "0.02em",
+                  color: "var(--sb-charcoal)",
+                  textDecoration: "none",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = "var(--sb-charcoal)";
+                  e.currentTarget.style.color = "var(--sb-paper)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = "transparent";
+                  e.currentTarget.style.color = "var(--sb-charcoal)";
+                }}
+              >
+                Saved looks →
+              </a>
+            )}
+            <Link
+              to="/scan"
+              style={{
+                color: "var(--sb-charcoal)", fontFamily: "var(--sb-font-display)", fontSize: 17,
+                textDecoration: "underline wavy", textDecorationColor: "var(--sb-terracotta)", textUnderlineOffset: 4,
+              }}
+            >
+              Upload your wardrobe →
+            </Link>
+          </div>
+
+          {loading ? (
+            <p className="sb-body" style={{ padding: "24px 0" }}>Loading…</p>
+          ) : (
+            <div id="picker" style={{ marginTop: 32, scrollMarginTop: 24 }}>
+              {CATEGORIES.map((cat) => {
+                const filtered = scenarios.filter((s) => s.category === cat);
+                if (filtered.length === 0) return null;
+                return (
+                  <div key={cat} style={{ marginBottom: 26 }}>
+                    <div className="sb-eyebrow" style={{ marginBottom: 10 }}>{cat}</div>
+                    <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+                      {filtered.map((s) => (
+                        <li key={s.id}>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (garments.length === 0) {
+                                alert("Scan some wardrobe items first!");
+                                return;
+                              }
+                              navigate(`/scenario/${s.id}`);
+                            }}
+                            style={{
+                              width: "100%", display: "grid",
+                              gridTemplateColumns: "auto 1fr auto",
+                              gap: 14, alignItems: "center",
+                              padding: "14px 0",
+                              borderBottom: "1px dashed rgba(139, 111, 71, 0.32)",
+                              background: "none", border: 0,
+                              borderBottomLeftRadius: 0, borderBottomRightRadius: 0,
+                              textAlign: "left", color: "var(--sb-charcoal)",
+                              cursor: "pointer", fontFamily: "inherit",
+                            }}
+                          >
+                            <span style={{ fontSize: 22, lineHeight: 1 }}>{s.icon}</span>
+                            <span>
+                              <span style={{
+                                display: "block",
+                                fontFamily: "var(--sb-font-display)", fontSize: 17,
+                                letterSpacing: "-0.01em",
+                              }}>{s.name}</span>
+                              <span style={{
+                                display: "block",
+                                fontFamily: "var(--sb-font-body)", fontSize: 13,
+                                color: "var(--sb-charcoal-soft)", marginTop: 3,
+                                lineHeight: 1.4,
+                              }}>{s.description}</span>
+                            </span>
+                            <span style={{
+                              fontFamily: "var(--sb-font-body)", fontSize: 11,
+                              letterSpacing: "0.18em", textTransform: "uppercase",
+                              color: "var(--sb-sepia)",
+                            }}>Compose →</span>
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </section>
+
+      </main>
+    </SketchbookPage>
   );
+}
+
+
+function Avatar({ user }) {
+  const initials = deriveInitials(user);
+  return (
+    <Link
+      to="/profile"
+      style={{
+        display: "inline-flex", alignItems: "center", justifyContent: "center",
+        width: 30, height: 30, borderRadius: "50%",
+        background: "rgba(232, 223, 205, 0.10)",
+        color: "#FAF5EC",
+        fontFamily: "var(--sb-font-display)", fontSize: 12,
+        letterSpacing: "0.04em",
+        textDecoration: "none",
+        border: "1px solid rgba(232, 223, 205, 0.22)",
+      }}
+      aria-label={user?.display_name || user?.email || "Profile"}
+    >
+      {initials}
+    </Link>
+  );
+}
+
+
+function deriveInitials(user) {
+  if (!user) return "·";
+  const source = user.display_name || user.email || "";
+  const parts = source.split(/[\s._-]+|@/).filter(Boolean);
+  if (parts.length === 0) return "·";
+  const letters = parts.slice(0, 2).map((p) => p[0]?.toUpperCase()).filter(Boolean).join("");
+  return letters || "·";
+}
+
+
+function isEvening() {
+  return new Date().getHours() >= 17;
+}
+
+
+function formatToday() {
+  return new Intl.DateTimeFormat("en-GB", {
+    weekday: "short", day: "numeric", month: "short",
+  }).format(new Date());
+}
+
+
+function formatDate(iso) {
+  if (!iso) return "—";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "—";
+  return new Intl.DateTimeFormat("en-GB", {
+    day: "numeric", month: "short",
+  }).format(d);
 }
