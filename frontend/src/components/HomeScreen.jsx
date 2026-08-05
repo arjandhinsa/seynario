@@ -15,6 +15,17 @@ export default function HomeScreen() {
   const [scenarios, setScenarios] = useState([]);
   const [savedOutfits, setSavedOutfits] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [brief, setBrief] = useState("");
+
+  const submitBrief = () => {
+    const text = brief.trim();
+    if (text.length < 3) return;
+    if (garments.length === 0) {
+      alert("Scan some wardrobe items first!");
+      return;
+    }
+    navigate(`/scenario/custom?prompt=${encodeURIComponent(text)}`);
+  };
 
   useEffect(() => {
     const load = async () => {
@@ -149,10 +160,60 @@ export default function HomeScreen() {
         <section id="compose" className="sb-detail__head" style={{ paddingTop: recentScenario ? 36 : 0 }}>
           <h2 className="sb-display sb-display-xl">What are you dressing for?</h2>
           <p className="sb-detail__lede">
-            Pick an occasion. We'll dress you from your wardrobe.
-            <br />
-            Saved looks stay here.
+            Tell us in your own words. We'll dress you from your wardrobe.
           </p>
+
+          <div style={{ marginTop: 22 }}>
+            <textarea
+              value={brief}
+              onChange={(e) => setBrief(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  submitBrief();
+                }
+              }}
+              maxLength={300}
+              rows={3}
+              placeholder={'"rooftop party, might rain, want to look expensive but not try-hard"'}
+              style={{
+                width: "100%", boxSizing: "border-box",
+                padding: "16px 18px", resize: "vertical",
+                background: "var(--sb-paper-card)",
+                border: "1.4px solid var(--sb-charcoal)",
+                boxShadow: "var(--sb-shadow-card)",
+                fontFamily: "var(--sb-font-hand)", fontSize: 19, lineHeight: 1.45,
+                color: "var(--sb-charcoal)",
+              }}
+            />
+            <div style={{
+              display: "flex", justifyContent: "space-between",
+              alignItems: "center", marginTop: 12,
+            }}>
+              <span style={{
+                fontFamily: "var(--sb-font-body)", fontSize: 11,
+                letterSpacing: "0.14em", textTransform: "uppercase",
+                color: "var(--sb-sepia)",
+              }}>
+                {brief.length > 0 ? `${brief.length}/300` : "or pick an occasion below"}
+              </span>
+              <button
+                type="button"
+                onClick={submitBrief}
+                disabled={brief.trim().length < 3}
+                style={{
+                  padding: "14px 26px", border: 0,
+                  background: brief.trim().length < 3 ? "var(--sb-sepia)" : "var(--sb-charcoal)",
+                  color: "var(--sb-paper)",
+                  fontFamily: "var(--sb-font-display)",
+                  fontSize: 16, letterSpacing: "0.04em",
+                  cursor: brief.trim().length < 3 ? "default" : "pointer",
+                }}
+              >
+                Style me →
+              </button>
+            </div>
+          </div>
 
           <div style={{ display: "flex", flexWrap: "wrap", gap: 20, alignItems: "center", marginTop: 22 }}>
             {savedOutfits.length > 0 && (

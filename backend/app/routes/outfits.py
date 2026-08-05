@@ -20,7 +20,9 @@ router = APIRouter()
 # --- Schemas ---
 
 class RecommendRequest(BaseModel):
-    scenario_id: str
+    # Exactly one of scenario_id (curated occasion) or prompt (free text).
+    scenario_id: str | None = None
+    prompt: str | None = Field(default=None, min_length=3, max_length=300)
     num_outfits: int = Field(default=3, ge=1, le=5)
 
 class OutfitItemResponse(BaseModel):
@@ -84,11 +86,19 @@ async def recommend_outfits(
     user_id: str = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    # Load scenario
-    result = await db.execute(select(Scenario).where(Scenario.id == body.scenario_id))
-    scenario = result.scalar_one_or_none()
-    if not scenario:
-        raise HTTPException(status_code=404, detail="Scenario not found")
+    # Exactly one of scenario_id / prompt must be provided.
+    if bool(body.scenario_id) == bool(body.prompt):
+        raise HTTPException(
+            status_code=422,
+            detail="Provide either scenario_id or prompt (not both).",
+        )
+
+    scenario = None
+    if body.scenario_id:
+        result = await db.execute(select(Scenario).where(Scenario.id == body.scenario_id))
+        scenario = result.scalar_one_or_none()
+        if not scenario:
+            raise HTTPException(status_code=404, detail="Scenario not found")
 
     # Load user's wardrobe
     result = await db.execute(
@@ -106,11 +116,25 @@ async def recommend_outfits(
         for g in garments
     ]
 
-    scenario_data = {
-        "name": scenario.name, "description": scenario.description,
-        "formality_min": scenario.formality_min, "formality_max": scenario.formality_max,
-        "style_notes": scenario.style_notes,
-    }
+    if scenario:
+        scenario_data = {
+            "name": scenario.name, "description": scenario.description,
+            "formality_min": scenario.formality_min, "formality_max": scenario.formality_max,
+            "style_notes": scenario.style_notes,
+        }
+    else:
+        # Free-text brief: the user described the occasion in their own
+        # words; let the stylist infer formality and mood from it.
+        scenario_data = {
+            "name": "The user's own brief",
+            "description": body.prompt,
+            "formality_min": 1, "formality_max": 5,
+            "style_notes": (
+                "No preset formality — infer the appropriate formality range, "
+                "season and mood from the user's description above, and dress "
+                "precisely for what they actually said."
+            ),
+        }
 
     # Load user profile
     result = await db.execute(select(User).where(User.id == user_id))
@@ -159,7 +183,7 @@ async def recommend_outfits(
 
         outfit = Outfit(
             user_id=user_id,
-            scenario_id=scenario.id,
+            scenario_id=scenario.id if scenario else None,
             name=outfit_data.get("name"),
             rationale=outfit_data.get("rationale"),
             sticky_note=sticky_raw,
