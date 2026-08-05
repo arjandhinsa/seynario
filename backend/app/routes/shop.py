@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel
 
 from app.middleware.auth import get_current_user
-from app.services.affiliate import generate_affiliate_link, generate_product_links
+from app.services.affiliate import generate_product_links
 
 
 router = APIRouter()
