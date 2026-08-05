@@ -1,6 +1,28 @@
 # Seynario — Dress for the Scenario
- 
+
+![CI](https://github.com/arjandhinsa/seynario/actions/workflows/ci.yml/badge.svg)
+
 A full-stack AI-powered wardrobe scanner and outfit recommendation engine. Users photograph their clothes, AI identifies each garment, then recommends complete outfits tailored to specific scenarios, such as: job interviews, first dates, nights out, weddings, and more.
+
+**Live:** [seynario.seyn.co.uk](https://seynario.seyn.co.uk) · [Privacy](https://seynario.seyn.co.uk/privacy)
+
+<!-- TODO(arjan): add screenshots — wardrobe grid, a scan in progress, an outfit recommendation.
+     Drop them in docs/screenshots/ and embed here. -->
+
+## Architecture
+
+```mermaid
+flowchart LR
+    U[Browser<br/>React + Vite] -->|JWT| A[FastAPI backend]
+    A --> DB[(Postgres / SQLite)]
+    A -->|scan: image| V[GPT-4o Vision]
+    A -->|recommend: wardrobe + scenario| S[GPT-4o-mini]
+    A -->|store photos| C[Cloudinary CDN]
+    V -. schema-validated JSON .-> A
+    S -. schema-validated JSON .-> A
+```
+
+Every AI response is validated against a Pydantic schema (one corrective retry, then clean failure) before touching the database. Upload validation, per-user daily quotas, per-IP rate limits, an app-wide daily spend ceiling, and image dedup keep API costs bounded — see the changelog below.
 
  
 ## How It Works
@@ -67,6 +89,16 @@ npm run dev
 Backend runs on `http://localhost:8000` (API docs at `/docs`)
 Frontend runs on `http://localhost:5174`
  
+### Tests
+ 
+```
+cd backend
+ruff check app main.py tests
+pytest
+```
+ 
+Tests cover auth (registration, login, expired-token rejection), upload validation, quota enforcement and daily reset, the global spend ceiling, scan dedup, AI output schema validation, and recommendation mapping. All OpenAI and Cloudinary calls are mocked — the suite never hits a live API. CI runs lint + tests + frontend build on every push and PR.
+ 
 ## API Cost
  
 | Action | Model | Cost per call |
@@ -76,6 +108,20 @@ Frontend runs on `http://localhost:5174`
  
 Scanning is a one-time cost per garment. At 100 users scanning 20 items each plus 5 recommendations per month, total API cost is approximately $9/month.
  
+ 
+## Changelog
+
+**Aug 2026 — hardening (P0/P1).** API behaviour changes:
+
+- `POST /api/wardrobe/scan`: uploads validated (max 8 MB, JPEG/PNG/WebP/HEIC only, content-verified, downscaled to 1568px). New responses: `400`/`413`/`415` invalid upload, `200` duplicate image (cached scan returned, no new garment), `429` daily scan cap (50/day), `503` app-wide AI budget exhausted.
+- `POST /api/outfits/recommend`: `429` daily cap (20/day), `503` global budget; `num_outfits` capped at 5.
+- Per-IP rate limits (`429`): register 10/h, login 10/min, refresh 30/min, demo 120/min, redirect 30/min.
+- New: `GET /api/auth/me/export` (JSON data export), `DELETE /api/auth/me` (full account deletion incl. Cloudinary assets), `/privacy` page. `LICENSE` added (MIT).
+
+## Infra decisions
+ 
+- **Image hosting: staying on Cloudinary** (free tier: 25 credits/mo) while usage is low — URL-based thumbnails are worth it. Revisit at ~60–70% of free-tier credits: migrate to Cloudflare R2 (zero egress fees) or Supabase Storage. Only `app/services/image_store.py` knows Cloudinary exists, so migration is an afternoon. Decided Aug 2026.
+- **Database: staying on Supabase managed Postgres** — self-hosting Postgres (e.g. Docker on a VPS) saves ~£15/mo but makes us responsible for backups, patches, and outages; not worth it for a live service holding user accounts. Docker is still the plan for local dev/prod parity later. Decided Aug 2026.
  
 ## Status
  

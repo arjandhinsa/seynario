@@ -7,12 +7,13 @@ polaroids without a second roundtrip. Demo data is immutable between
 pre-gen runs, so responses get a 1-hour CDN cache header.
 """
 
-from fastapi import APIRouter, Depends, HTTPException, Response
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 
 from app.constants import DEMO_EXCLUDED_SCENARIOS, DEMO_WARDROBE_IDS
 from app.database import get_db
+from app.limiter import limiter
 from app.models.demo import DemoOutfit
 from app.models.library import LibraryGarment
 from app.models.scenario import Scenario
@@ -25,7 +26,9 @@ CACHE_HEADER = "public, max-age=3600"
 
 
 @router.get("/scenarios")
+@limiter.limit("120/minute")
 async def list_demo_scenarios(
+    request: Request,
     response: Response,
     db: AsyncSession = Depends(get_db),
 ):
@@ -61,7 +64,9 @@ async def list_demo_scenarios(
 
 
 @router.get("/scenarios/{scenario_id}")
+@limiter.limit("120/minute")
 async def get_demo_scenario(
+    request: Request,
     scenario_id: str,
     response: Response,
     db: AsyncSession = Depends(get_db),
@@ -145,7 +150,9 @@ async def get_demo_scenario(
 
 
 @router.get("/wardrobe")
+@limiter.limit("120/minute")
 async def get_demo_wardrobe(
+    request: Request,
     response: Response,
     db: AsyncSession = Depends(get_db),
 ):

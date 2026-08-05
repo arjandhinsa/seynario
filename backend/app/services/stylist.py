@@ -1,11 +1,33 @@
 import json
+import logging
 
 from openai import AsyncOpenAI
+from pydantic import ValidationError
 
 from app.config import settings
+from app.schemas.ai import OutfitPlanList
 
+
+logger = logging.getLogger("seynario.stylist")
 
 client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
+
+
+class StylistParseError(Exception):
+    """Model output could not be parsed/validated after a retry."""
+
+
+def _strip_code_fences(content: str) -> str:
+    content = content.strip()
+    if content.startswith("```"):
+        content = content.split("\n", 1)[1]
+        content = content.rsplit("```", 1)[0]
+    return content.strip()
+
+
+def parse_outfits_response(content: str) -> OutfitPlanList:
+    """Parse + schema-validate a raw model reply. Raises on bad output."""
+    return OutfitPlanList.model_validate({"outfits": json.loads(_strip_code_fences(content))})
 
 
 async def generate_outfits(
@@ -28,7 +50,7 @@ async def generate_outfits(
         if user_profile.get("body_type"): parts.append(f"Body type: {user_profile['body_type']}")
         if user_profile.get("style_pref"): parts.append(f"Style preference: {user_profile['style_pref']}")
         if parts:
-            profile_text = f"\n\nUser profile:\n" + "\n".join(parts)
+            profile_text = "\n\nUser profile:\n" + "\n".join(parts)
 
     prompt = f"""You are a fashion stylist writing for a designer's working sketchbook — Aesop catalogue meets Antonio Lopez fashion illustration. You compose outfits for a real person from their wardrobe, suggesting purchases only where genuinely necessary.
 
@@ -79,22 +101,37 @@ Return ONLY a JSON array, no other text:
   }}
 ]"""
 
+    messages = [{"role": "user", "content": prompt}]
     response = await client.chat.completions.create(
-        model=settings.OPENAI_MODEL,
-        max_tokens=2000,
-        messages=[{"role": "user", "content": prompt}],
+        model=settings.OPENAI_MODEL, max_tokens=2000, messages=messages,
     )
+    content = response.choices[0].message.content or ""
 
-    content = response.choices[0].message.content.strip()
-
-    if content.startswith("```"):
-        content = content.split("\n", 1)[1]
-        content = content.rsplit("```", 1)[0]
-
-    outfits = json.loads(content)
+    try:
+        plan = parse_outfits_response(content)
+    except (json.JSONDecodeError, ValidationError) as first_error:
+        logger.warning("Stylist response failed validation, retrying once: %s", first_error)
+        messages.append({"role": "assistant", "content": content})
+        messages.append({
+            "role": "user",
+            "content": (
+                "Your previous reply was not valid against the required output "
+                f"format. Error: {first_error}. Reply again with ONLY the "
+                "corrected JSON array, exactly matching the format in my first message."
+            ),
+        })
+        response = await client.chat.completions.create(
+            model=settings.OPENAI_MODEL, max_tokens=2000, messages=messages,
+        )
+        content = response.choices[0].message.content or ""
+        try:
+            plan = parse_outfits_response(content)
+        except (json.JSONDecodeError, ValidationError) as second_error:
+            logger.error("Stylist response failed validation after retry: %s", second_error)
+            raise StylistParseError(str(second_error)) from second_error
 
     return {
-        "outfits": outfits,
+        "outfits": [o.model_dump() for o in plan.outfits],
         "usage": {
             "input_tokens": response.usage.prompt_tokens,
             "output_tokens": response.usage.completion_tokens,
