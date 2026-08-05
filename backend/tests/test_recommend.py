@@ -105,6 +105,36 @@ async def test_recommend_rejects_incomplete_profile(client, db, auth_token):
     assert resp.status_code == 400
 
 
+async def test_recommend_accepts_free_text_prompt(client, db, auth_token, monkeypatch):
+    scenario, garment = await _setup_user(client, db, auth_token)
+    captured = {}
+
+    async def fake(wardrobe, scenario, user_profile=None, num_outfits=3):
+        captured["scenario"] = scenario
+        return await _fake_generate(garment.id)(wardrobe, scenario, user_profile, num_outfits)
+
+    monkeypatch.setattr(outfits_route, "generate_outfits", fake)
+
+    resp = await client.post("/api/outfits/recommend", headers=bearer(auth_token), json={
+        "prompt": "rooftop party, might rain, look expensive not try-hard",
+        "num_outfits": 1,
+    })
+    assert resp.status_code == 201, resp.text
+    assert resp.json()[0]["scenario_id"] is None
+    # The user's own words reach the stylist as the occasion description.
+    assert "rooftop party" in captured["scenario"]["description"]
+
+
+async def test_recommend_rejects_both_or_neither_input(client, db, auth_token):
+    await _setup_user(client, db, auth_token)
+    neither = await client.post("/api/outfits/recommend", headers=bearer(auth_token), json={})
+    assert neither.status_code == 422
+    both = await client.post("/api/outfits/recommend", headers=bearer(auth_token), json={
+        "prompt": "a party", "scenario_id": "abc",
+    })
+    assert both.status_code == 422
+
+
 async def test_recommend_caps_num_outfits(client, db, auth_token):
     resp = await client.post("/api/outfits/recommend", headers=bearer(auth_token), json={
         "scenario_id": "anything", "num_outfits": 99,
