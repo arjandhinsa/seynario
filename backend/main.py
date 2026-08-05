@@ -1,10 +1,38 @@
+import logging
 from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from sqlalchemy import text
 
 from app.config import settings
-from app.database import engine, Base
+from app.database import engine, Base, is_postgres
+from app.limiter import limiter
 from app.routes import auth, wardrobe, scenarios, outfits, shop, demo, redirect_route as redirect
+
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("seynario")
+
+
+async def _apply_schema_upgrades(conn):
+    """Lightweight in-place upgrades for columns added after first deploy.
+
+    create_all only creates missing tables — it never alters existing
+    ones — so additive columns are applied here. Replace with Alembic
+    migrations if the schema starts changing more often.
+    """
+    if is_postgres:
+        await conn.execute(
+            text("ALTER TABLE garments ADD COLUMN IF NOT EXISTS image_hash VARCHAR(64)")
+        )
+    else:
+        try:
+            await conn.execute(text("ALTER TABLE garments ADD COLUMN image_hash VARCHAR(64)"))
+        except Exception:
+            pass  # column already exists
 
 
 @asynccontextmanager
@@ -15,12 +43,14 @@ async def lifespan(app: FastAPI):
     from app.models.scenario import Scenario
     from app.models.library import LibraryGarment
     from app.models.demo import DemoOutfit, DemoClick
+    from app.models.usage import UsageCounter
 
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
-    print(f"✓ {settings.APP_NAME} started — tables created")
+        await _apply_schema_upgrades(conn)
+    logger.info("%s started — tables created", settings.APP_NAME)
     yield
-    print(f"✓ {settings.APP_NAME} stopped")
+    logger.info("%s stopped", settings.APP_NAME)
 
 
 app = FastAPI(
@@ -30,6 +60,10 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+# Per-IP rate limiting (slowapi). Limits are declared on the routes.
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.CORS_ORIGINS.split(","),
@@ -38,7 +72,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Routes — uncomment as you build them
 app.include_router(auth.router, prefix="/api/auth", tags=["Auth"])
 app.include_router(wardrobe.router, prefix="/api/wardrobe", tags=["Wardrobe"])
 app.include_router(scenarios.router, prefix="/api/scenarios", tags=["Scenarios"])

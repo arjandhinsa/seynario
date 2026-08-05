@@ -21,6 +21,10 @@ class Garment(Base):
     # Cloudinary URL of the uploaded photo
     image_url: Mapped[str] = mapped_column(String(500), nullable=False)
 
+    # SHA-256 of the uploaded bytes — dedup: identical re-uploads by the
+    # same user return the cached scan instead of re-calling the model.
+    image_hash: Mapped[str] = mapped_column(String(64), nullable=True, index=True)
+
     # AI-detected attributes
     category: Mapped[str] = mapped_column(
         String(50), nullable=False,  # "top", "bottom", "outerwear", "footwear", "accessory"

@@ -28,10 +28,12 @@ def upload_image(file_bytes: bytes, filename: str) -> str:
 def delete_image(image_url: str) -> bool:
     # Extracts the public ID from the URL and deletes it
     # URL looks like: https://res.cloudinary.com/xxx/image/upload/v123/seynario/filename.jpg
+    # Returns True only if Cloudinary confirms the asset is gone
+    # ("ok" = destroyed now, "not found" = already gone).
     try:
         parts = image_url.split("/upload/")[1]  # "v123/seynario/filename.jpg"
         public_id = parts.split("/", 1)[1].rsplit(".", 1)[0]  # "seynario/filename"
-        cloudinary.uploader.destroy(public_id)
-        return True
+        result = cloudinary.uploader.destroy(public_id, invalidate=True)
+        return result.get("result") in ("ok", "not found")
     except Exception:
         return False
