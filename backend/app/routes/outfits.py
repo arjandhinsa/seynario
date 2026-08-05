@@ -1,5 +1,3 @@
-import json
-
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -13,7 +11,7 @@ from app.models.scenario import Scenario
 from app.models.user import User
 from app.middleware.auth import get_current_user
 from app.services.quota import check_and_increment
-from app.services.stylist import generate_outfits
+from app.services.stylist import generate_outfits, StylistParseError
 
 
 router = APIRouter()
@@ -132,13 +130,22 @@ async def recommend_outfits(
     # Raises 429 (user daily cap) or 503 (global budget exhausted).
     await check_and_increment(db, user_id, "recommend")
 
-    # Generate outfit recommendations
-    ai_result = await generate_outfits(
-        wardrobe=wardrobe_data,
-        scenario=scenario_data,
-        user_profile=user_profile,
-        num_outfits=body.num_outfits,
-    )
+    # Generate outfit recommendations. Output is schema-validated inside
+    # generate_outfits (one corrective retry); fail cleanly if it still
+    # can't produce valid JSON.
+    try:
+        ai_result = await generate_outfits(
+            wardrobe=wardrobe_data,
+            scenario=scenario_data,
+            user_profile=user_profile,
+            num_outfits=body.num_outfits,
+        )
+    except StylistParseError:
+        await db.commit()  # persist the quota increment for the attempt
+        raise HTTPException(
+            status_code=502,
+            detail="The stylist couldn't produce a valid recommendation. Please try again.",
+        )
 
     # Build a garment lookup for matching IDs to images
     garment_lookup = {g.id: g for g in garments}
