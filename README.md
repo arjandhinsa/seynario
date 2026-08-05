@@ -77,6 +77,11 @@ Frontend runs on `http://localhost:5174`
 Scanning is a one-time cost per garment. At 100 users scanning 20 items each plus 5 recommendations per month, total API cost is approximately $9/month.
  
  
+## Infra decisions
+ 
+- **Image hosting: staying on Cloudinary** (free tier: 25 credits/mo) while usage is low — URL-based thumbnails are worth it. Revisit at ~60–70% of free-tier credits: migrate to Cloudflare R2 (zero egress fees) or Supabase Storage. Only `app/services/image_store.py` knows Cloudinary exists, so migration is an afternoon. Decided Aug 2026.
+- **Database: staying on Supabase managed Postgres** — self-hosting Postgres (e.g. Docker on a VPS) saves ~£15/mo but makes us responsible for backups, patches, and outages; not worth it for a live service holding user accounts. Docker is still the plan for local dev/prod parity later. Decided Aug 2026.
+ 
 ## Status
  
 Active development. Core backend and frontend complete. Next: affiliate integration for shoppable recommendations, virtual try-on exploration.
