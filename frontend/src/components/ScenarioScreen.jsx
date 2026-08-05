@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth.jsx";
 import { api } from "../services/api";
 import { SketchbookPage, Masthead, Polaroid } from "./sketchbook";
@@ -35,6 +35,7 @@ function mappedAccentFor(scenario) {
 
 export default function ScenarioScreen() {
   const { scenarioId } = useParams();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { getToken } = useAuth();
   const [scenario, setScenario] = useState(null);
@@ -43,7 +44,25 @@ export default function ScenarioScreen() {
   const [generating, setGenerating] = useState(false);
   const [variantIdx, setVariantIdx] = useState(0);
 
+  // Custom brief mode: /scenario/custom?prompt=... — the user typed the
+  // occasion themselves; no scenario exists in the DB.
+  const isCustom = scenarioId === "custom";
+  const customPrompt = searchParams.get("prompt") || "";
+
   useEffect(() => {
+    if (isCustom) {
+      setScenario({
+        id: "custom",
+        name: "Your brief",
+        description: customPrompt,
+        icon: "✍️",
+        category: "social",
+        formality_min: null,
+        formality_max: null,
+      });
+      setLoading(false);
+      return;
+    }
     const load = async () => {
       const token = getToken();
       try {
@@ -62,7 +81,10 @@ export default function ScenarioScreen() {
     setGenerating(true);
     const token = getToken();
     try {
-      const results = await api.post("/api/outfits/recommend", {
+      const results = await api.post("/api/outfits/recommend", isCustom ? {
+        prompt: customPrompt,
+        num_outfits: 3,
+      } : {
         scenario_id: scenarioId,
         num_outfits: 3,
       }, token);
@@ -115,7 +137,10 @@ export default function ScenarioScreen() {
       <main className="sb-detail">
         <header className="sb-detail__head">
           <div className="sb-eyebrow">
-            {scenario.icon ? `${scenario.icon} · ` : ""}Formality {scenario.formality_min}–{scenario.formality_max} of 5
+            {scenario.icon ? `${scenario.icon} · ` : ""}
+            {scenario.formality_min != null
+              ? `Formality ${scenario.formality_min}–${scenario.formality_max} of 5`
+              : "In your own words"}
           </div>
           <h1 className="sb-display sb-display-xl">{scenario.name}</h1>
           {scenario.description && (
@@ -148,7 +173,7 @@ export default function ScenarioScreen() {
                 e.currentTarget.style.background = "var(--sb-charcoal)";
               }}
             >
-              Style me for this scenario →
+              {isCustom ? "Style me for this →" : "Style me for this scenario →"}
             </button>
           </section>
         )}
