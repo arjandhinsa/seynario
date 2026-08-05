@@ -77,6 +77,15 @@ Frontend runs on `http://localhost:5174`
 Scanning is a one-time cost per garment. At 100 users scanning 20 items each plus 5 recommendations per month, total API cost is approximately $9/month.
  
  
+## Changelog
+
+**Aug 2026 — hardening (P0/P1).** API behaviour changes:
+
+- `POST /api/wardrobe/scan`: uploads validated (max 8 MB, JPEG/PNG/WebP/HEIC only, content-verified, downscaled to 1568px). New responses: `400`/`413`/`415` invalid upload, `200` duplicate image (cached scan returned, no new garment), `429` daily scan cap (50/day), `503` app-wide AI budget exhausted.
+- `POST /api/outfits/recommend`: `429` daily cap (20/day), `503` global budget; `num_outfits` capped at 5.
+- Per-IP rate limits (`429`): register 10/h, login 10/min, refresh 30/min, demo 120/min, redirect 30/min.
+- New: `GET /api/auth/me/export` (JSON data export), `DELETE /api/auth/me` (full account deletion incl. Cloudinary assets), `/privacy` page. `LICENSE` added (MIT).
+
 ## Infra decisions
  
 - **Image hosting: staying on Cloudinary** (free tier: 25 credits/mo) while usage is low — URL-based thumbnails are worth it. Revisit at ~60–70% of free-tier credits: migrate to Cloudflare R2 (zero egress fees) or Supabase Storage. Only `app/services/image_store.py` knows Cloudinary exists, so migration is an afternoon. Decided Aug 2026.
