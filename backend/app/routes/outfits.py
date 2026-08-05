@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from app.database import get_db
 from app.models.wardrobe import Garment
@@ -12,6 +12,7 @@ from app.models.outfit import Outfit, OutfitItem
 from app.models.scenario import Scenario
 from app.models.user import User
 from app.middleware.auth import get_current_user
+from app.services.quota import check_and_increment
 from app.services.stylist import generate_outfits
 
 
@@ -22,7 +23,7 @@ router = APIRouter()
 
 class RecommendRequest(BaseModel):
     scenario_id: str
-    num_outfits: int = 3
+    num_outfits: int = Field(default=3, ge=1, le=5)
 
 class OutfitItemResponse(BaseModel):
     id: str
@@ -126,6 +127,10 @@ async def recommend_outfits(
             status_code=400,
             detail="Please complete your style profile before generating outfits"
         )
+
+    # Quota check + increment happens BEFORE any spend.
+    # Raises 429 (user daily cap) or 503 (global budget exhausted).
+    await check_and_increment(db, user_id, "recommend")
 
     # Generate outfit recommendations
     ai_result = await generate_outfits(
