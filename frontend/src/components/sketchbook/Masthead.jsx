@@ -28,7 +28,30 @@ export default function Masthead({
 }) {
   return (
     <header className={`sb-masthead ${className}`.trim()}>
-      <div className="sb-masthead__wordmark">{title}</div>
+      <div
+        className="sb-masthead__wordmark"
+        style={{ display: "flex", alignItems: "center", gap: 10 }}
+      >
+        {/* Hanger mark — shared DNA with the SEYN family of sites */}
+        <svg
+          viewBox="0 0 72 72"
+          width="20"
+          height="20"
+          fill="none"
+          aria-hidden="true"
+          style={{ flexShrink: 0 }}
+        >
+          <path
+            d="M36 20 v6 M16 50 L36 26 L56 50 Z"
+            stroke="#6FA3A3"
+            strokeWidth="5"
+            strokeLinejoin="round"
+            strokeLinecap="round"
+          />
+          <circle cx="36" cy="16" r="5" stroke="#6FA3A3" strokeWidth="4" />
+        </svg>
+        {title}
+      </div>
       <div className="sb-masthead__meta">
         {eyebrow && <span className="sb-masthead__eyebrow">{eyebrow}</span>}
         {right && <span className="sb-masthead__right">{right}</span>}
