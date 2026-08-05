@@ -286,7 +286,7 @@ function ResultPanel({ result, onUpdateField, onSaveNext, onDiscard, onDoneToWar
             e.currentTarget.style.transform = "none";
             e.currentTarget.style.background = "var(--sb-charcoal)";
           }}
-        >Save · Next item →</button>
+        >Next item →</button>
 
         <button
           type="button"
