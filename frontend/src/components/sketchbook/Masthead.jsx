@@ -30,16 +30,16 @@ export default function Masthead({
     <header className={`sb-masthead ${className}`.trim()}>
       <div
         className="sb-masthead__wordmark"
-        style={{ display: "flex", alignItems: "center", gap: 10 }}
+        style={{ display: "flex", alignItems: "center", gap: 16 }}
       >
         {/* Hanger mark — shared DNA with the SEYN family of sites */}
         <svg
-          viewBox="0 0 72 72"
-          width="20"
+          viewBox="10 6 52 50"
+          width="21"
           height="20"
           fill="none"
           aria-hidden="true"
-          style={{ flexShrink: 0 }}
+          style={{ flexShrink: 0, marginTop: -2 }}
         >
           <path
             d="M36 20 v6 M16 50 L36 26 L56 50 Z"
