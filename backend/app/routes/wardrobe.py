@@ -15,6 +15,15 @@ from app.middleware.auth import get_current_user
 from app.services.image_store import upload_image, delete_image
 from app.services.vision import identify_garment
 
+MAX_BYTES = 8 * 1024 * 1024
+
+ALLOWED_TYPES = {
+    "image/jpeg",
+    "image/png",
+    "image/webp",
+    "image/heic",   # iPhone camera default
+    "image/heif",
+}
 
 def convert_to_jpeg(image_bytes: bytes, content_type: str) -> bytes:
     """Convert HEIC/HEIF to JPEG. Pass through JPG/PNG unchanged."""
@@ -64,7 +73,12 @@ async def scan_garment(
     db: AsyncSession = Depends(get_db),
 ):
     # Read and convert image (handles HEIC from iPhones)
-    raw_bytes = await file.read()
+    raw_bytes = await file.read(MAX_BYTES + 1)
+    if len(raw_bytes) > MAX_BYTES:
+        raise HTTPException(status_code=413, detail="File too large")
+
+    if file.content_type not in ALLOWED_TYPES:
+        raise HTTPException(status_code=415, detail="Unsupported Media Type")
     image_bytes = convert_to_jpeg(raw_bytes, file.content_type)
 
     # Upload to Cloudinary
