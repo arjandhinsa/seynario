@@ -13,12 +13,13 @@ collides with the stdlib module name.
 
 from urllib.parse import quote_plus
 
-from fastapi import APIRouter, Cookie, Depends, HTTPException
+from fastapi import APIRouter, Cookie, Depends, HTTPException, Request
 from fastapi.responses import RedirectResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
 from app.database import get_db
+from app.limiter import limiter
 from app.models.demo import DemoOutfit, DemoClick
 from app.models.library import LibraryGarment
 
@@ -31,7 +32,9 @@ AMAZON_TAG = "seynario-21"
 
 
 @router.get("/{outfit_id}/{item_id}")
+@limiter.limit("30/minute")  # unauthenticated DB write — keep it bounded
 async def redirect_to_amazon(
+    request: Request,
     outfit_id: str,
     item_id: str,
     seynario_anon: str | None = Cookie(default=None),
