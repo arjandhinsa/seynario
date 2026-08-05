@@ -9,6 +9,7 @@ import OutfitDetail from "./components/OutfitDetail.jsx";
 import ProfileScreen from "./components/ProfileScreen.jsx";
 import DemoScenarioPicker from "./components/DemoScenarioPicker.jsx";
 import DemoOutfitDetail from "./components/DemoOutfitDetail.jsx";
+import PrivacyPolicy from "./components/PrivacyPolicy.jsx";
 
 function AuthedRoutes() {
   return (
@@ -32,6 +33,7 @@ function AppRoutes() {
     <Routes>
       <Route path="/demo" element={<DemoScenarioPicker />} />
       <Route path="/demo/scenarios/:scenarioId" element={<DemoOutfitDetail />} />
+      <Route path="/privacy" element={<PrivacyPolicy />} />
       <Route
         path="*"
         element={user ? <AuthedRoutes /> : <LoginScreen onSuccess={() => navigate("/")} />}

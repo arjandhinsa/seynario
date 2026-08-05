@@ -97,6 +97,40 @@ export default function ProfileScreen() {
     navigate("/");
   };
 
+  const handleExport = async () => {
+    try {
+      const data = await api.get("/api/auth/me/export", getToken());
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "seynario-export.json";
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      console.error("Export failed:", e);
+      alert("Export failed — please try again.");
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    const confirmed = window.confirm(
+      "Delete your account permanently? Your wardrobe, outfits, and all stored " +
+      "photos will be destroyed. This cannot be undone."
+    );
+    if (!confirmed) return;
+    const typed = window.prompt('Type DELETE to confirm:');
+    if (typed !== "DELETE") return;
+    try {
+      await api.delete("/api/auth/me", getToken());
+      logout();
+      navigate("/");
+    } catch (e) {
+      console.error("Account deletion failed:", e);
+      alert(e.message || "Deletion failed — please try again.");
+    }
+  };
+
   const heading = user?.display_name || user?.email || "Loading…";
   const styleBlurb = useMemo(() => {
     const slug = hoveredStyle ?? stylePref;
@@ -170,6 +204,47 @@ export default function ProfileScreen() {
         <hr style={{
           border: 0, borderTop: "1px dashed var(--sb-sepia)",
           margin: "36px 0 22px",
+        }} />
+
+        <section>
+          <p className="sb-eyebrow" style={{ marginBottom: 14 }}>YOUR DATA</p>
+          <p style={{
+            fontFamily: "var(--sb-font-body)", fontSize: 13,
+            color: "var(--sb-charcoal-soft)", lineHeight: 1.6, margin: "0 0 14px",
+          }}>
+            Download everything we hold about you, or delete your account —
+            including all stored photos. See the{" "}
+            <Link to="/privacy" style={{ color: "var(--sb-sepia)" }}>privacy policy</Link>.
+          </p>
+          <div style={{ display: "flex", gap: 22, alignItems: "baseline" }}>
+            <button
+              type="button"
+              onClick={handleExport}
+              style={{
+                background: "none", border: 0, padding: 0,
+                fontFamily: "var(--sb-font-hand)", fontSize: 18,
+                color: "var(--sb-sepia)",
+                textDecoration: "underline", textUnderlineOffset: 4,
+                cursor: "pointer",
+              }}
+            >Export my data (JSON)</button>
+            <button
+              type="button"
+              onClick={handleDeleteAccount}
+              style={{
+                background: "none", border: 0, padding: 0,
+                fontFamily: "var(--sb-font-hand)", fontSize: 18,
+                color: "#a13d2d",
+                textDecoration: "underline", textUnderlineOffset: 4,
+                cursor: "pointer",
+              }}
+            >Delete my account</button>
+          </div>
+        </section>
+
+        <hr style={{
+          border: 0, borderTop: "1px dashed var(--sb-sepia)",
+          margin: "30px 0 22px",
         }} />
 
         <section style={{ textAlign: "center", paddingBottom: 12 }}>

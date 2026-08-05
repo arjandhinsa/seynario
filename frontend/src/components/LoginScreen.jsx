@@ -115,6 +115,15 @@ export default function LoginScreen({ onSuccess }) {
             {isRegister ? "Sign in →" : "Sign up →"}
           </button>
         </p>
+
+        <p style={{
+          textAlign: "center", marginTop: 24,
+          fontFamily: "var(--sb-font-body)", fontSize: 12,
+          color: "var(--sb-sepia)",
+        }}>
+          {isRegister && "By signing up you agree to how we handle your data. "}
+          <Link to="/privacy" style={{ color: "var(--sb-sepia)" }}>Privacy policy</Link>
+        </p>
       </main>
     </SketchbookPage>
   );
