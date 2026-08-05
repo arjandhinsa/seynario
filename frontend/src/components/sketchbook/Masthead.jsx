@@ -35,8 +35,8 @@ export default function Masthead({
         {/* Hanger mark — shared DNA with the SEYN family of sites */}
         <svg
           viewBox="10 6 52 50"
-          width="21"
-          height="20"
+          width="18"
+          height="17"
           fill="none"
           aria-hidden="true"
           style={{ flexShrink: 0, marginTop: -2 }}
