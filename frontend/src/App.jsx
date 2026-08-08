@@ -36,7 +36,16 @@ function AppRoutes() {
       <Route path="/privacy" element={<PrivacyPolicy />} />
       <Route
         path="*"
-        element={user ? <AuthedRoutes /> : <LoginScreen onSuccess={() => navigate("/")} />}
+        element={
+          user ? (
+            <AuthedRoutes />
+          ) : (
+            // Stay on the current path after auth — a logged-out visitor
+            // who clicked "try your own wardrobe" from the demo lands on
+            // /scan, not an empty dashboard.
+            <LoginScreen onSuccess={() => navigate(window.location.pathname, { replace: true })} />
+          )
+        }
       />
     </Routes>
   );

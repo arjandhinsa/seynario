@@ -21,6 +21,10 @@ class Settings(BaseSettings):
     CLOUDINARY_API_KEY: str = ""
     CLOUDINARY_API_SECRET: str = ""
 
+    # One-tap auth (optional — endpoints return 501 until configured)
+    GOOGLE_CLIENT_ID: str = ""
+    APPLE_CLIENT_ID: str = ""
+
     # Upload validation
     MAX_UPLOAD_BYTES: int = 8 * 1024 * 1024  # 8 MB
     MAX_IMAGE_DIMENSION: int = 1568  # px, longest side; downscaled server-side

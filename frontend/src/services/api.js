@@ -1,5 +1,14 @@
 const BASE_URL = import.meta.env.PROD ? "https://api-seynario.seyn.co.uk" : "";
 
+/** Prefix a backend-relative path (e.g. "/api/r/p/123") with the API
+ *  origin. Absolute URLs pass through untouched. Needed for plain <a>
+ *  links — in production the frontend and API are different domains, and
+ *  the Vercel SPA rewrite would otherwise swallow /api/* clicks. */
+export function apiHref(path) {
+  if (!path) return path;
+  return path.startsWith("/") ? `${BASE_URL}${path}` : path;
+}
+
 async function request(endpoint, options = {}, token = null) {
   const headers = { "Content-Type": "application/json", ...options.headers };
   if (token) headers["Authorization"] = `Bearer ${token}`;

@@ -22,9 +22,34 @@ from app.database import get_db
 from app.limiter import limiter
 from app.models.demo import DemoOutfit, DemoClick
 from app.models.library import LibraryGarment
+from app.models.product import Product, ProductClick
 
 
 router = APIRouter()
+
+
+@router.get("/p/{product_id}")
+@limiter.limit("60/minute")
+async def redirect_to_product(
+    request: Request,
+    product_id: str,
+    db: AsyncSession = Depends(get_db),
+):
+    """Production affiliate redirect: log the click first-party, then 302.
+
+    Routing through our own endpoint means click counts are ours (not
+    just the network's dashboard) and no third-party cookie drops before
+    the user actually leaves — which keeps PECR consent simple.
+    """
+    result = await db.execute(select(Product).where(Product.id == product_id))
+    product = result.scalar_one_or_none()
+    if product is None or not product.active:
+        raise HTTPException(status_code=404, detail="Product not found")
+
+    db.add(ProductClick(product_id=product.id))
+    await db.commit()
+
+    return RedirectResponse(url=product.affiliate_url, status_code=302)
 
 
 AMAZON_BASE = "https://www.amazon.co.uk"

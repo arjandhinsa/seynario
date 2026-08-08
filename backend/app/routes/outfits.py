@@ -10,6 +10,7 @@ from app.models.outfit import Outfit, OutfitItem
 from app.models.scenario import Scenario
 from app.models.user import User
 from app.middleware.auth import get_current_user
+from app.services.product_match import match_product
 from app.services.quota import check_and_increment
 from app.services.stylist import generate_outfits, StylistParseError
 
@@ -200,15 +201,37 @@ async def recommend_outfits(
             if isinstance(annotation, str) and not annotation.strip():
                 annotation = None
 
+            # Try the curated catalogue first; a confident match gets a
+            # first-party redirect link and a real product image. No
+            # match → fall back to the Amazon search link as before.
+            affiliate_name, affiliate_url, affiliate_image = buy_desc, None, None
+            if buy_desc:
+                product = await match_product(
+                    db,
+                    position=item_data.get("position", "top"),
+                    buy_description=buy_desc,
+                    formality=scenario_data.get("formality_min"),
+                    gender=(user_profile or {}).get("gender"),
+                )
+                if product:
+                    affiliate_name = product.name
+                    affiliate_url = f"/api/r/p/{product.id}"  # frontend prefixes API base
+                    affiliate_image = product.image_url
+                else:
+                    affiliate_url = (
+                        f"https://www.amazon.co.uk/s?k={buy_desc.replace(' ', '+')}"
+                        f"&i=clothing&tag=seynario-21"
+                    )
+
             item = OutfitItem(
                 outfit_id=outfit.id,
                 garment_id=garment_id if is_owned else None,
                 position=item_data.get("position", "top"),
                 is_owned=is_owned,
                 annotation=annotation,
-                affiliate_name=buy_desc,
-                affiliate_url=f"https://www.amazon.co.uk/s?k={buy_desc.replace(' ', '+')}&i=clothing&tag=seynario-21" if buy_desc else None,
-                affiliate_image=None,  # Placeholder until we can fetch real images
+                affiliate_name=affiliate_name,
+                affiliate_url=affiliate_url,
+                affiliate_image=affiliate_image,
             )
             db.add(item)
 

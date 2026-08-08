@@ -24,15 +24,19 @@ async def _apply_schema_upgrades(conn):
     ones — so additive columns are applied here. Replace with Alembic
     migrations if the schema starts changing more often.
     """
-    if is_postgres:
-        await conn.execute(
-            text("ALTER TABLE garments ADD COLUMN IF NOT EXISTS image_hash VARCHAR(64)")
-        )
-    else:
+    additive = [
+        "ALTER TABLE garments ADD COLUMN image_hash VARCHAR(64)",
+        "ALTER TABLE users ADD COLUMN auth_provider VARCHAR(20)",
+        "ALTER TABLE users ADD COLUMN google_sub VARCHAR(64)",
+        "ALTER TABLE users ADD COLUMN apple_sub VARCHAR(64)",
+    ]
+    for stmt in additive:
+        if is_postgres:
+            stmt = stmt.replace("ADD COLUMN", "ADD COLUMN IF NOT EXISTS")
         try:
-            await conn.execute(text("ALTER TABLE garments ADD COLUMN image_hash VARCHAR(64)"))
+            await conn.execute(text(stmt))
         except Exception:
-            pass  # column already exists
+            pass  # column already exists (sqlite has no IF NOT EXISTS)
 
 
 @asynccontextmanager
@@ -44,6 +48,7 @@ async def lifespan(app: FastAPI):
     from app.models.library import LibraryGarment
     from app.models.demo import DemoOutfit, DemoClick
     from app.models.usage import UsageCounter
+    from app.models.product import Product, ProductClick
 
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)

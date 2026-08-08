@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth.jsx";
 import { api } from "../services/api";
+import { track } from "../services/analytics";
 import { SketchbookPage, Masthead, Polaroid } from "./sketchbook";
 import {
   CATEGORIES, SEASONS, FORMALITIES,
@@ -31,6 +32,7 @@ export default function ScanScreen() {
     try {
       const token = getToken();
       const garment = await api.upload("/api/wardrobe/scan", formData, token);
+      track("garment_uploaded");
       setResult(garment);
     } catch (err) {
       setError(err.message || "Failed to scan. Try a JPG or PNG image.");

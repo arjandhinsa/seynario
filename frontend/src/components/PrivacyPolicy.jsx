@@ -52,6 +52,22 @@ export default function PrivacyPolicy() {
           garment or your account, at which point they are permanently destroyed.
         </p>
 
+        <h2 style={S.h2}>Affiliate links</h2>
+        <p style={S.p}>
+          Some "buy" links in recommendations are affiliate links — if you
+          purchase through one, Seynario may earn a commission at no cost to
+          you. Outbound clicks route through our own server first, where we
+          record only that the product link was clicked (no personal
+          profile is attached). We disclose these links where they appear.
+        </p>
+
+        <h2 style={S.h2}>Analytics</h2>
+        <p style={S.p}>
+          We use cookieless analytics (Umami) to count page views and
+          feature usage in aggregate. No cookies are set, no personal
+          identifiers are collected, and no data is shared with advertisers.
+        </p>
+
         <h2 style={S.h2}>Legal basis</h2>
         <p style={S.p}>
           We process your data to provide the service you signed up for (UK GDPR

@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth.jsx";
+import { track } from "../services/analytics";
 import { SketchbookPage, Masthead } from "./sketchbook";
+import SocialButtons from "./SocialButtons.jsx";
 
 export default function LoginScreen({ onSuccess }) {
   const { login, register } = useAuth();
@@ -18,7 +20,9 @@ export default function LoginScreen({ onSuccess }) {
     setLoading(true);
     try {
       if (isRegister) {
+        track("signup_started", { method: "password" });
         await register(email, password, displayName || null);
+        track("signup_completed", { method: "password" });
       } else {
         await login(email, password);
       }
@@ -47,6 +51,8 @@ export default function LoginScreen({ onSuccess }) {
         <p className="sb-login__lede">
           Photograph what you own. Tell us the occasion. We compose the look + explain it.
         </p>
+
+        <SocialButtons onSuccess={onSuccess} onError={setError} />
 
         <div className="sb-login__form">
           {isRegister && (
