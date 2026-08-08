@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth.jsx";
-import { api } from "../services/api";
+import { api, apiHref } from "../services/api";
+import { track } from "../services/analytics";
 import { SketchbookPage, Masthead, Polaroid } from "./sketchbook";
 
 
@@ -88,6 +89,7 @@ export default function ScenarioScreen() {
         scenario_id: scenarioId,
         num_outfits: 3,
       }, token);
+      track("recommendation_generated", { source: isCustom ? "prompt" : "scenario" });
       setOutfits(results);
       setVariantIdx(0);
     } catch (e) {
@@ -276,10 +278,11 @@ export default function ScenarioScreen() {
                     </div>
                     {!item.is_owned && item.affiliate_url ? (
                       <a
-                        href={item.affiliate_url}
+                        href={apiHref(item.affiliate_url)}
                         target="_blank"
                         rel="noopener noreferrer sponsored"
                         className="sb-stockists__link"
+                        onClick={() => track("affiliate_click", { product: item.name })}
                       >Buy →</a>
                     ) : (
                       <span style={{
@@ -292,6 +295,14 @@ export default function ScenarioScreen() {
                 ))}
               </ul>
             </section>
+
+            {current.items.some((i) => !i.is_owned && i.affiliate_url) && (
+              // UK ASA/CAP: affiliate relationships must be clear and
+              // upfront — visible near the links, not buried in a footer.
+              <p className="sb-detail__disclosure">
+                "Buy" links may earn Seynario a commission, at no cost to you.
+              </p>
+            )}
 
             <section style={{
               marginTop: 36, display: "flex", flexWrap: "wrap", gap: 16, alignItems: "center",
