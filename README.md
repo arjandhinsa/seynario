@@ -9,16 +9,23 @@ A full-stack AI-powered wardrobe scanner and outfit recommendation engine. Users
 ## Screenshots
 
 <p align="center">
-  <img src="docs/screenshots/home-prompt.png" alt="Describe the occasion in your own words and get styled from your wardrobe" width="720" />
+  <img src="docs/screenshots/home-prompt.png" alt="Describe the occasion in your own words and get styled from your wardrobe" width="800" />
 </p>
+
+<table>
+  <tr>
+    <th>The composed look</th>
+    <th>Or pick a curated occasion</th>
+  </tr>
+  <tr valign="top">
+    <td><img src="docs/screenshots/outfit-result.png" alt="Annotated polaroids and the reasoning behind every piece" width="400" /></td>
+    <td><img src="docs/screenshots/scenario-library.png" alt="14 occasions across four categories" width="400" /></td>
+  </tr>
+</table>
 
 <p align="center">
-  <img src="docs/screenshots/outfit-result.png" alt="A composed look: annotated polaroids and the reasoning behind every piece" width="720" />
+  <img src="docs/screenshots/scan-upload.png" alt="Photograph a garment to catalogue it" width="800" />
 </p>
-
-| Scan your wardrobe | Or pick a curated occasion |
-|---|---|
-| ![Photograph a garment to catalogue it](docs/screenshots/scan-upload.png) | ![14 occasions across four categories](docs/screenshots/scenario-library.png) |
 
 ## Architecture
 
