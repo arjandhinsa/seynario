@@ -14,8 +14,8 @@ A full-stack AI-powered wardrobe scanner and outfit recommendation engine. Users
 
 <table>
   <tr>
-    <th>The composed look</th>
-    <th>Or pick a curated occasion</th>
+    <th>Outfit recommendation</th>
+    <th>Scenario picker</th>
   </tr>
   <tr valign="top">
     <td><img src="docs/screenshots/outfit-result.png" alt="Annotated polaroids and the reasoning behind every piece" width="400" /></td>
