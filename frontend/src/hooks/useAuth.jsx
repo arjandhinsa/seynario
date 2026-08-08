@@ -63,6 +63,17 @@ export function AuthProvider({ children }) {
     return userData;
   }, []);
 
+  // One-tap auth: provider is "google" or "apple", token is the signed
+  // identity token from the provider's SDK. Backend verifies and links
+  // or creates the account.
+  const socialLogin = useCallback(async (provider, token) => {
+    const data = await api.post(`/api/auth/${provider}`, { token });
+    setTokens({ access: data.access_token, refresh: data.refresh_token });
+    const userData = await api.get("/api/auth/me", data.access_token);
+    setUser(userData);
+    return userData;
+  }, []);
+
   const logout = useCallback(() => {
     setTokens({ access: null, refresh: null });
     setUser(null);
@@ -75,7 +86,7 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, getToken }}>
+    <AuthContext.Provider value={{ user, loading, login, register, socialLogin, logout, getToken }}>
       {children}
     </AuthContext.Provider>
   );

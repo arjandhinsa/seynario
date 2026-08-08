@@ -18,6 +18,7 @@ from app.services.auth_service import (
     create_access_token, create_refresh_token, verify_token,
 )
 from app.services.image_store import delete_image
+from app.services.social_auth import verify_apple_token, verify_google_token
 from app.middleware.auth import get_current_user
 
 
@@ -93,6 +94,77 @@ async def login(request: Request, body: LoginRequest, db: AsyncSession = Depends
         access_token=create_access_token(user.id),
         refresh_token=create_refresh_token(user.id),
     )
+
+
+class SocialAuthRequest(BaseModel):
+    token: str
+
+
+async def _social_login(db: AsyncSession, provider: str, info: dict) -> "TokenResponse":
+    """Find-or-create a user for a verified social identity.
+
+    Order: match by provider sub (returning user) → match by verified
+    email (link to existing account) → create a fresh account. Password
+    login stays possible for linked accounts; social-created accounts get
+    an unusable random password hash.
+    """
+    import uuid as _uuid
+
+    sub_col = User.google_sub if provider == "google" else User.apple_sub
+
+    result = await db.execute(select(User).where(sub_col == info["sub"]))
+    user = result.scalar_one_or_none()
+
+    if user is None and info.get("email"):
+        result = await db.execute(select(User).where(User.email == info["email"]))
+        user = result.scalar_one_or_none()
+        if user:
+            # Link provider to the existing account by verified email.
+            setattr(user, f"{provider}_sub", info["sub"])
+            await db.commit()
+            logger.info("Linked %s to existing account %s", provider, user.id)
+
+    if user is None:
+        if not info.get("email"):
+            # Apple omits the email after the first authorisation; if we
+            # have no sub match and no email, we can't safely create.
+            raise HTTPException(
+                status_code=401,
+                detail=(
+                    "Couldn't read an email from your Apple ID. Remove Seynario "
+                    "from Settings → Apple ID → Sign-In & Security and try again."
+                ),
+            )
+        user = User(
+            email=info["email"],
+            hashed_password=hash_password(_uuid.uuid4().hex),  # unusable
+            display_name=info.get("name"),
+            auth_provider=provider,
+            **{f"{provider}_sub": info["sub"]},
+        )
+        db.add(user)
+        await db.commit()
+        await db.refresh(user)
+        logger.info("Created account %s via %s", user.id, provider)
+
+    return TokenResponse(
+        access_token=create_access_token(user.id),
+        refresh_token=create_refresh_token(user.id),
+    )
+
+
+@router.post("/google", response_model=TokenResponse)
+@limiter.limit("20/minute")
+async def google_auth(request: Request, body: SocialAuthRequest, db: AsyncSession = Depends(get_db)):
+    info = verify_google_token(body.token)
+    return await _social_login(db, "google", info)
+
+
+@router.post("/apple", response_model=TokenResponse)
+@limiter.limit("20/minute")
+async def apple_auth(request: Request, body: SocialAuthRequest, db: AsyncSession = Depends(get_db)):
+    info = verify_apple_token(body.token)
+    return await _social_login(db, "apple", info)
 
 
 @router.post("/refresh", response_model=TokenResponse)

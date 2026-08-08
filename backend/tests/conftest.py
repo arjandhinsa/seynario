@@ -20,7 +20,7 @@ from app.database import Base, SessionLocal, engine
 from app.limiter import limiter
 
 # Import every model so create_all knows the full schema.
-from app.models import demo, library, outfit, scenario, usage, user, wardrobe
+from app.models import demo, library, outfit, product, scenario, usage, user, wardrobe
 
 from main import app
 

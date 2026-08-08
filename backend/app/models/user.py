@@ -23,6 +23,13 @@ class User(Base):
         String(100), nullable=True,
     )
 
+    # One-tap auth. auth_provider records how the account was CREATED
+    # ("password", "google", "apple"); the sub columns link providers to
+    # this account regardless of how it was created.
+    auth_provider: Mapped[str] = mapped_column(String(20), nullable=True, default="password")
+    google_sub: Mapped[str] = mapped_column(String(64), nullable=True, index=True)
+    apple_sub: Mapped[str] = mapped_column(String(64), nullable=True, index=True)
+
     # Fashion profile — set during onboarding or in settings
     body_type: Mapped[str] = mapped_column(
         String(50), nullable=True,  # "athletic", "slim", "curvy", "average", etc.
