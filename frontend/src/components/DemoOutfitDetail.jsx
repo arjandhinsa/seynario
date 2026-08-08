@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { api } from "../services/api";
+import { api, apiHref } from "../services/api";
+import { track } from "../services/analytics";
 import { SketchbookPage, Masthead, Polaroid, Annotation, StickyNote } from "./sketchbook";
 
 
@@ -25,6 +26,7 @@ export default function DemoOutfitDetail() {
         if (!cancelled) {
           setData(res);
           setVariantIdx(0);
+          track("demo_outfit_viewed", { scenario: res?.scenario?.name });
         }
       } catch (e) {
         if (!cancelled) setError(e.message);
@@ -131,7 +133,7 @@ export default function DemoOutfitDetail() {
                   {item.position && <span className="sb-stockists__pos">{item.position}</span>}
                 </div>
                 <a
-                  href={item.redirect_url}
+                  href={apiHref(item.redirect_url)}
                   target="_blank"
                   rel="noopener noreferrer sponsored"
                   className="sb-stockists__link"
@@ -142,11 +144,17 @@ export default function DemoOutfitDetail() {
         </section>
 
         <section className="sb-detail__cta">
-          <h3 className="sb-display sb-display-md">Use this with your own wardrobe.</h3>
+          <h3 className="sb-display sb-display-md">Try it on your own wardrobe.</h3>
           <p className="sb-body">
             Scan in what you already own. Get the same kind of read on every outfit you wear.
           </p>
-          <Link to="/" className="sb-detail__signup">Sign up for your own wardrobe →</Link>
+          {/* Links straight to /scan: logged-out visitors see the auth
+              screen and land on the scanner immediately after signing up. */}
+          <Link
+            to="/scan"
+            className="sb-detail__signup"
+            onClick={() => track("demo_cta_clicked")}
+          >Try it on your own wardrobe →</Link>
         </section>
 
         <p className="sb-detail__disclosure">
