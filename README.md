@@ -6,8 +6,19 @@ A full-stack AI-powered wardrobe scanner and outfit recommendation engine. Users
 
 **Live:** [seynario.seyn.co.uk](https://seynario.seyn.co.uk) · [Privacy](https://seynario.seyn.co.uk/privacy)
 
-<!-- TODO(arjan): add screenshots — wardrobe grid, a scan in progress, an outfit recommendation.
-     Drop them in docs/screenshots/ and embed here. -->
+## Screenshots
+
+<p align="center">
+  <img src="docs/screenshots/home-prompt.png" alt="Describe the occasion in your own words and get styled from your wardrobe" width="720" />
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/outfit-result.png" alt="A composed look: annotated polaroids and the reasoning behind every piece" width="720" />
+</p>
+
+| Scan your wardrobe | Or pick a curated occasion |
+|---|---|
+| ![Photograph a garment to catalogue it](docs/screenshots/scan-upload.png) | ![14 occasions across four categories](docs/screenshots/scenario-library.png) |
 
 ## Architecture
 
